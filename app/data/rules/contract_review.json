@@ -1,0 +1,114 @@
+{
+  "rules": [
+    {
+      "id": "ctr-final-interpretation",
+      "title": "Final interpretation right",
+      "pattern": "(最终解释权归.{0,20}(甲方|本公司|乙方|平台).{0,10}所有)",
+      "severity": "high",
+      "category": "one_sided_control",
+      "explanation": "A unilateral final-interpretation clause can create imbalance and should be reviewed carefully.",
+      "suggestion": "Replace with a dispute-resolution or amendment mechanism rather than unilateral interpretation rights.",
+      "references": ["Contract fairness review"]
+    },
+    {
+      "id": "ctr-unilateral-change",
+      "title": "Unilateral modification power",
+      "pattern": "(甲方有权单方(修改|变更|调整|决定)|平台有权单方(修改|变更|调整|决定))",
+      "severity": "critical",
+      "category": "one_sided_control",
+      "explanation": "Broad unilateral change authority is a common red flag in commercial contracts.",
+      "suggestion": "Add notice period, negotiation rights, and written confirmation requirements before changes take effect.",
+      "references": ["Contract fairness review"]
+    },
+    {
+      "id": "ctr-auto-renewal",
+      "title": "Automatic renewal",
+      "pattern": "(自动续期|自动续约|默认续费|到期后自动延长)",
+      "severity": "medium",
+      "category": "renewal_and_term",
+      "explanation": "Auto-renewal clauses should be explicit, understandable, and operationally controllable.",
+      "suggestion": "Add reminder timing, cancellation path, and renewal notice language.",
+      "references": ["Renewal clause review"]
+    },
+    {
+      "id": "ctr-no-refund",
+      "title": "No-refund clause",
+      "pattern": "(已付款项概不退还|不予退还|一律不退款|已支付费用不退)",
+      "severity": "high",
+      "category": "payment_and_refund",
+      "explanation": "Flat no-refund language can be risky when the contract lacks balanced service, breach, or cancellation logic.",
+      "suggestion": "Define refund triggers, service milestones, and mutual breach handling more precisely.",
+      "references": ["Refund and breach review"]
+    },
+    {
+      "id": "ctr-unlimited-liability",
+      "title": "Unlimited or total liability shift",
+      "pattern": "(承担全部损失|无限责任|全部赔偿责任|对一切损失负责)",
+      "severity": "critical",
+      "category": "liability",
+      "explanation": "Unlimited or blanket liability is a major negotiation point and often needs specialist review.",
+      "suggestion": "Cap liability and define scope, exclusions, and direct-vs-indirect damages clearly.",
+      "references": ["Liability cap review"]
+    },
+    {
+      "id": "ctr-broad-exemption",
+      "title": "Broad exemption from responsibility",
+      "pattern": "(甲方不承担任何责任|平台不承担任何责任|概不负责|免责)",
+      "severity": "high",
+      "category": "liability",
+      "explanation": "Broad免责 language can be overreaching if it is not narrowed by scenario and legal limits.",
+      "suggestion": "Narrow the exemption to specific events and add each party's baseline obligations.",
+      "references": ["Liability fairness review"]
+    },
+    {
+      "id": "ctr-unilateral-termination",
+      "title": "Unilateral termination right",
+      "pattern": "(甲方可随时解除|平台可随时终止|乙方不得解除|未经甲方同意不得解除)",
+      "severity": "high",
+      "category": "termination",
+      "explanation": "One-sided termination rights can materially change commercial risk allocation.",
+      "suggestion": "Define reciprocal termination triggers, cure periods, and post-termination settlement rules.",
+      "references": ["Termination clause review"]
+    },
+    {
+      "id": "ctr-jurisdiction",
+      "title": "Unfavorable jurisdiction clause",
+      "pattern": "(由甲方所在地法院管辖|由平台所在地法院管辖|提交.{0,10}(仲裁委员会|法院)处理)",
+      "severity": "medium",
+      "category": "dispute_resolution",
+      "explanation": "Jurisdiction clauses may be valid, but they should be reviewed for cost, convenience, and bargaining balance.",
+      "suggestion": "Review venue, governing law, and evidence rules before signing.",
+      "references": ["Jurisdiction review"]
+    },
+    {
+      "id": "ctr-acceptance-control",
+      "title": "Acceptance controlled by one side",
+      "pattern": "(以甲方最终验收为准|验收标准以甲方要求为准|是否合格由甲方决定)",
+      "severity": "high",
+      "category": "delivery_and_acceptance",
+      "explanation": "If one side fully controls acceptance, payment and delivery disputes become more likely.",
+      "suggestion": "Define objective acceptance criteria, timelines, and deemed-acceptance rules.",
+      "references": ["Acceptance clause review"]
+    },
+    {
+      "id": "ctr-ip-transfer",
+      "title": "Broad IP ownership transfer",
+      "pattern": "(所有成果及知识产权归甲方所有|全部知识产权永久归甲方|乙方无权保留任何知识产权)",
+      "severity": "medium",
+      "category": "intellectual_property",
+      "explanation": "IP ownership can be commercially acceptable, but broad transfer language should be reviewed against price and scope.",
+      "suggestion": "Separate pre-existing IP, deliverable IP, usage license, and derivative rights.",
+      "references": ["IP ownership review"]
+    },
+    {
+      "id": "ctr-penalty-asymmetry",
+      "title": "Asymmetric breach penalty",
+      "pattern": "(乙方应支付违约金|乙方承担违约责任).{0,40}(甲方无需承担|甲方不承担)",
+      "severity": "high",
+      "category": "breach_and_damages",
+      "explanation": "Highly asymmetric breach language can indicate an unfair risk split.",
+      "suggestion": "Make breach remedies reciprocal or justify differences with clear business logic.",
+      "references": ["Breach remedy review"]
+    }
+  ]
+}

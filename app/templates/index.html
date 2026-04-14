@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ app_name }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">SMB launch-ready MVP</p>
+        <h1>{{ app_name }}</h1>
+        <p class="subtitle">Upload ad copy or contracts, run a first-pass risk scan, and get structured actions you can use immediately.</p>
+      </div>
+      <div class="hero-meta">
+        <div class="badge">LLM enabled: {{ 'Yes' if llm_enabled else 'No' }}</div>
+        <div class="badge">Max upload: {{ max_upload_mb }}MB</div>
+        <div class="badge">API key required: {{ 'Yes' if api_key_required else 'No' }}</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="card form-card">
+        <h2>Run a scan</h2>
+        <div class="grid two">
+          <label>
+            <span>Mode</span>
+            <select id="mode">
+              <option value="ad_copy">Ad copy / promotional text</option>
+              <option value="contract_review">Contract / agreement review</option>
+            </select>
+          </label>
+          <label>
+            <span>Optional title</span>
+            <input id="title" type="text" maxlength="255" placeholder="Campaign name, contract title, client, etc." />
+          </label>
+        </div>
+
+        <label>
+          <span>API key header (only needed if enabled)</span>
+          <input id="apiKey" type="password" placeholder="X-API-Key" />
+        </label>
+
+        <div class="tabs">
+          <button class="tab active" data-target="textPane" type="button">Paste text</button>
+          <button class="tab" data-target="filePane" type="button">Upload file</button>
+        </div>
+
+        <div id="textPane" class="pane active">
+          <label>
+            <span>Content</span>
+            <textarea id="textInput" rows="14" placeholder="Paste your ad copy or contract text here..."></textarea>
+          </label>
+          <div class="actions">
+            <label class="checkbox">
+              <input id="useLlmText" type="checkbox" {% if llm_enabled %}checked{% endif %} />
+              <span>Use LLM enrichment when configured</span>
+            </label>
+            <button id="scanTextBtn" class="primary" type="button">Scan text</button>
+          </div>
+        </div>
+
+        <div id="filePane" class="pane">
+          <label>
+            <span>File</span>
+            <input id="fileInput" type="file" accept=".txt,.md,.docx,.pdf" />
+          </label>
+          <div class="actions">
+            <label class="checkbox">
+              <input id="useLlmFile" type="checkbox" {% if llm_enabled %}checked{% endif %} />
+              <span>Use LLM enrichment when configured</span>
+            </label>
+            <button id="scanFileBtn" class="primary" type="button">Upload and scan</button>
+          </div>
+        </div>
+
+        <p id="statusText" class="muted">Ready.</p>
+      </section>
+
+      <section class="card sidebar">
+        <h2>Rule packs</h2>
+        <div id="rulepacks" class="rulepacks"></div>
+        <h2>Recent jobs</h2>
+        <div id="recentJobs" class="recent-list"></div>
+      </section>
+    </main>
+
+    <section class="card results-card">
+      <div class="results-header">
+        <h2>Result</h2>
+        <button id="refreshBtn" type="button">Refresh jobs</button>
+      </div>
+      <div id="emptyState" class="empty-state">
+        No scan result yet. Submit text or upload a file to begin.
+      </div>
+      <div id="resultPane" class="hidden"></div>
+    </section>
+  </div>
+
+  <script>
+    const rulepacksEl = document.getElementById('rulepacks');
+    const recentJobsEl = document.getElementById('recentJobs');
+    const resultPane = document.getElementById('resultPane');
+    const emptyState = document.getElementById('emptyState');
+    const statusText = document.getElementById('statusText');
+    const apiKeyInput = document.getElementById('apiKey');
+    const modeInput = document.getElementById('mode');
+    const titleInput = document.getElementById('title');
+    let activeJobId = null;
+
+    function apiHeaders(extra = {}) {
+      const headers = { ...extra };
+      if (apiKeyInput.value.trim()) {
+        headers['X-API-Key'] = apiKeyInput.value.trim();
+      }
+      return headers;
+    }
+
+    function setStatus(text, isError = false) {
+      statusText.textContent = text;
+      statusText.classList.toggle('error', isError);
+    }
+
+    async function fetchMeta() {
+      const res = await fetch('/api/v1/meta');
+      const data = await res.json();
+      rulepacksEl.innerHTML = data.rulepacks.map(pack => `
+        <div class="rulepack-item">
+          <strong>${pack.mode}</strong>
+          <span>${pack.rule_count} rules</span>
+          <span>${pack.critical_rules} critical</span>
+        </div>
+      `).join('');
+    }
+
+    async function fetchJobs() {
+      const res = await fetch('/api/v1/jobs', { headers: apiHeaders() });
+      if (!res.ok) {
+        const payload = await safeJson(res);
+        setStatus(payload.detail || 'Unable to load jobs.', true);
+        return;
+      }
+      const jobs = await res.json();
+      recentJobsEl.innerHTML = jobs.length ? jobs.map(job => `
+        <button class="job-item" data-job-id="${job.id}">
+          <div>
+            <strong>${job.title || job.file_name || job.id.slice(0, 8)}</strong>
+            <p>${job.mode} · ${job.status}</p>
+          </div>
+          <span>${new Date(job.created_at).toLocaleString()}</span>
+        </button>
+      `).join('') : '<p class="muted">No jobs yet.</p>';
+
+      document.querySelectorAll('.job-item').forEach(button => {
+        button.addEventListener('click', () => loadJob(button.dataset.jobId));
+      });
+    }
+
+    async function safeJson(res) {
+      try {
+        return await res.json();
+      } catch {
+        return {};
+      }
+    }
+
+    function renderResult(job) {
+      if (!job || !job.result) {
+        emptyState.classList.remove('hidden');
+        resultPane.classList.add('hidden');
+        resultPane.innerHTML = '';
+        return;
+      }
+      emptyState.classList.add('hidden');
+      resultPane.classList.remove('hidden');
+      const result = job.result;
+      resultPane.innerHTML = `
+        <div class="summary-grid">
+          <div class="metric">
+            <span>Risk score</span>
+            <strong>${result.risk_score}</strong>
+          </div>
+          <div class="metric">
+            <span>Rule hits</span>
+            <strong>${result.deterministic_hit_count}</strong>
+          </div>
+          <div class="metric">
+            <span>LLM used</span>
+            <strong>${result.llm_used ? 'Yes' : 'No'}</strong>
+          </div>
+          <div class="metric">
+            <span>Mode</span>
+            <strong>${result.mode}</strong>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Summary</h3>
+          <p>${escapeHtml(result.summary)}</p>
+        </div>
+        <div class="panel">
+          <h3>Recommended actions</h3>
+          <ul>${result.recommended_actions.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </div>
+        <div class="panel">
+          <h3>Warnings</h3>
+          <ul>${result.warnings.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </div>
+        <div class="panel">
+          <h3>Risk items</h3>
+          <div class="risk-list">
+            ${result.risk_items.map(item => `
+              <article class="risk-item severity-${item.severity}">
+                <div class="risk-top">
+                  <strong>${escapeHtml(item.title)}</strong>
+                  <span>${item.severity} · ${escapeHtml(item.category)} · ${item.source}</span>
+                </div>
+                <p>${escapeHtml(item.explanation || '')}</p>
+                ${item.excerpt ? `<blockquote>${escapeHtml(item.excerpt)}</blockquote>` : ''}
+                ${item.suggestion ? `<p><strong>Suggestion:</strong> ${escapeHtml(item.suggestion)}</p>` : ''}
+              </article>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadJob(jobId) {
+      activeJobId = jobId;
+      const res = await fetch(`/api/v1/jobs/${jobId}`, { headers: apiHeaders() });
+      const job = await safeJson(res);
+      if (!res.ok) {
+        setStatus(job.detail || 'Unable to load job.', true);
+        return;
+      }
+      renderResult(job);
+      setStatus(`Loaded job ${jobId}`);
+      if (job.status === 'queued' || job.status === 'pending' || job.status === 'processing') {
+        pollJob(jobId);
+      }
+    }
+
+    async function pollJob(jobId) {
+      const start = Date.now();
+      while (Date.now() - start < 120000) {
+        await new Promise(resolve => setTimeout(resolve, 1800));
+        const res = await fetch(`/api/v1/jobs/${jobId}`, { headers: apiHeaders() });
+        const job = await safeJson(res);
+        if (!res.ok) {
+          setStatus(job.detail || 'Polling failed.', true);
+          return;
+        }
+        renderResult(job);
+        if (job.status === 'completed') {
+          setStatus('Scan completed.');
+          fetchJobs();
+          return;
+        }
+        if (job.status === 'failed') {
+          setStatus(job.error_message || 'Scan failed.', true);
+          fetchJobs();
+          return;
+        }
+        setStatus(`Job ${job.status}...`);
+      }
+      setStatus('Polling timed out. Refresh the job list and retry.', true);
+    }
+
+    async function submitText() {
+      const text = document.getElementById('textInput').value.trim();
+      if (!text) {
+        setStatus('Please paste some text first.', true);
+        return;
+      }
+      setStatus('Submitting text scan...');
+      const body = {
+        mode: modeInput.value,
+        text,
+        title: titleInput.value.trim() || null,
+        use_llm: document.getElementById('useLlmText').checked,
+      };
+      const res = await fetch('/api/v1/scan/text', {
+        method: 'POST',
+        headers: apiHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body),
+      });
+      const payload = await safeJson(res);
+      if (!res.ok) {
+        setStatus(payload.detail || 'Failed to create scan.', true);
+        return;
+      }
+      activeJobId = payload.job_id;
+      setStatus(`Queued text scan ${payload.job_id}`);
+      fetchJobs();
+      pollJob(payload.job_id);
+    }
+
+    async function submitFile() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) {
+        setStatus('Please select a file first.', true);
+        return;
+      }
+      setStatus('Uploading file...');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mode', modeInput.value);
+      formData.append('title', titleInput.value.trim() || '');
+      formData.append('use_llm', String(document.getElementById('useLlmFile').checked));
+      const headers = apiHeaders();
+      const res = await fetch('/api/v1/scan/file', {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+      const payload = await safeJson(res);
+      if (!res.ok) {
+        setStatus(payload.detail || 'Failed to upload file.', true);
+        return;
+      }
+      activeJobId = payload.job_id;
+      setStatus(`Queued file scan ${payload.job_id}`);
+      fetchJobs();
+      pollJob(payload.job_id);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    document.querySelectorAll('.tab').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.pane').forEach(el => el.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(button.dataset.target).classList.add('active');
+      });
+    });
+
+    document.getElementById('scanTextBtn').addEventListener('click', submitText);
+    document.getElementById('scanFileBtn').addEventListener('click', submitFile);
+    document.getElementById('refreshBtn').addEventListener('click', fetchJobs);
+
+    fetchMeta();
+    fetchJobs();
+  </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+{
+  "rules": [
+    {
+      "id": "ad-absolute-claims",
+      "title": "Absolute or superlative claim",
+      "pattern": "(国家级|最高级|最佳|第一|唯一|首个|顶级|极品|史上最强|全网第一|永久有效|100%有效|绝对)",
+      "severity": "high",
+      "category": "advertising_claims",
+      "explanation": "Absolute or superlative language often creates advertising law risk when it cannot be fully substantiated.",
+      "suggestion": "Replace with measurable, source-backed wording, such as scope, date range, or test conditions.",
+      "references": ["Advertising law risk: absolute wording", "SMB copy review"]
+    },
+    {
+      "id": "ad-guaranteed-outcome",
+      "title": "Guaranteed outcome or certainty",
+      "pattern": "(包过|保证通过|无效退款|立刻见效|立即见效|治愈|根治|稳赚|保本|零风险|百分百成功)",
+      "severity": "critical",
+      "category": "false_or_misleading",
+      "explanation": "Guarantees about outcomes, returns, or treatment effects are a common source of enforcement risk.",
+      "suggestion": "Remove guaranteed language and use conditional or evidence-based descriptions only.",
+      "references": ["Advertising law risk: guaranteed outcomes"]
+    },
+    {
+      "id": "ad-medical-effect",
+      "title": "Medical or treatment effect claim",
+      "pattern": "(修复视力|抗癌|降三高|消炎杀菌|治脱发|快速减肥|医学验证治好|改善近视|治疗效果)",
+      "severity": "critical",
+      "category": "medical_sensitive",
+      "explanation": "Medical-style efficacy claims can trigger higher-risk review, especially in healthcare, beauty, or supplement scenarios.",
+      "suggestion": "Use compliant product descriptions and require specialized review for medical or health-related promotions.",
+      "references": ["Medical or health advertising risk"]
+    },
+    {
+      "id": "ad-finance-return",
+      "title": "Financial return promise",
+      "pattern": "(年化收益|高收益|稳赔?不赚|保本保收益|低风险高回报|稳赚不赔)",
+      "severity": "critical",
+      "category": "financial_sensitive",
+      "explanation": "Investment or finance copy that implies assured return or low/no risk has elevated compliance risk.",
+      "suggestion": "Remove return promises and add clear risk disclosures reviewed by compliance staff.",
+      "references": ["Financial promotion risk"]
+    },
+    {
+      "id": "ad-fake-authority",
+      "title": "Authority or endorsement risk",
+      "pattern": "(权威专家推荐|央视推荐|国家认证推荐|官方唯一推荐|院长亲荐|名医同款|博士团队背书)",
+      "severity": "high",
+      "category": "endorsement",
+      "explanation": "Authority endorsements are risky when identity, authorization, or evidence cannot be verified.",
+      "suggestion": "Use verifiable endorsements only, with documented authorization and context.",
+      "references": ["Endorsement and authority risk"]
+    },
+    {
+      "id": "ad-price-lowest",
+      "title": "Lowest-price or exclusivity claim",
+      "pattern": "(全网最低|最低价|底价|独家|仅此一家|别无分店|唯一渠道)",
+      "severity": "high",
+      "category": "pricing_and_positioning",
+      "explanation": "Lowest-price or exclusivity claims are risky if they cannot be continuously verified.",
+      "suggestion": "Replace with specific time-bound offers or clearly documented campaign terms.",
+      "references": ["Pricing claim risk"]
+    },
+    {
+      "id": "ad-education-promise",
+      "title": "Education or exam guarantee",
+      "pattern": "(包录取|包过|保过|签约保分|提分保证|保上岸)",
+      "severity": "critical",
+      "category": "education_sensitive",
+      "explanation": "Education and exam advertising often draws enforcement when it promises admission or guaranteed score improvement.",
+      "suggestion": "Remove result guarantees and keep only objective course, teacher, and service descriptions.",
+      "references": ["Education training ad risk"]
+    },
+    {
+      "id": "ad-urgency-pressure",
+      "title": "Artificial urgency or pressure wording",
+      "pattern": "(最后一天|马上恢复原价|错过再等一年|只剩最后[一二三四五六七八九十0-9]+份|今天不买就没了)",
+      "severity": "medium",
+      "category": "sales_pressure",
+      "explanation": "Urgency language is not always unlawful, but it is worth reviewing when scarcity cannot be verified.",
+      "suggestion": "Keep urgency claims traceable to real inventory, timing, and campaign records.",
+      "references": ["Sales pressure review"]
+    },
+    {
+      "id": "ad-ai-persona",
+      "title": "AI-generated persona or identity risk",
+      "pattern": "(AI医生|AI专家|AI院长|虚拟名医|仿真医生形象|AI生成主播)",
+      "severity": "high",
+      "category": "ai_generated_content",
+      "explanation": "AI-generated experts or people in sensitive sectors can create deception and disclosure risk.",
+      "suggestion": "Disclose synthetic content clearly and avoid fictitious authority figures in sensitive promotions.",
+      "references": ["AI-generated advertising risk"]
+    },
+    {
+      "id": "ad-no-ad-label",
+      "title": "Possible missing ad disclosure",
+      "pattern": "(合作推荐|种草|真实分享|亲测好用)",
+      "severity": "medium",
+      "category": "disclosure",
+      "explanation": "Influencer-style or soft-selling copy may require clear ad or promotion disclosure depending on context.",
+      "suggestion": "Review whether the publishing channel requires an explicit advertising or commercial cooperation label.",
+      "references": ["Platform disclosure review"]
+    }
+  ]
+}
