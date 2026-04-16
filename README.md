@@ -1,5 +1,10 @@
 # Compliance Radar
 
+线上展示版：
+- https://ai-compliance-radar.pages.dev
+
+说明：这是 Cloudflare Pages 的前端展示地址，适合直接宣传和分享。
+
 广告文案合规扫描 + 合同条款预审，面向中小企业的 AI 风险识别工具。
 
 前后端已合并，开箱即用。
