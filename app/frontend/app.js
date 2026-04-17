@@ -23,12 +23,14 @@ const dom = {
   statusBadge: document.getElementById("statusBadge"),
   textInput: document.getElementById("textInput"),
   titleInput: document.getElementById("titleInput"),
+  uploadHelpText: document.getElementById("uploadHelpText"),
   useLlmFile: document.getElementById("useLlmFile"),
   useLlmText: document.getElementById("useLlmText"),
 };
 
 let activeMode = "ad_copy";
 let activeJobId = null;
+let allowedUploads = [".txt", ".md", ".docx", ".pdf"];
 
 function setStatus(message, isError = false) {
   dom.statusBadge.textContent = message;
@@ -234,11 +236,16 @@ async function fetchMeta() {
   const data = await response.json();
   dom.useLlmText.checked = Boolean(data.llm_enabled);
   dom.useLlmFile.checked = Boolean(data.llm_enabled);
+  if (Array.isArray(data.allowed_uploads) && data.allowed_uploads.length) {
+    allowedUploads = data.allowed_uploads;
+    dom.fileInput.accept = allowedUploads.join(",");
+    dom.uploadHelpText.textContent = `支持 ${allowedUploads.join("、")}，文件大小受服务端配置限制。`;
+  }
   renderRulepacks(data.rulepacks || []);
   dom.metaStrip.innerHTML = `
     <span>最大上传：${escapeHtml(data.max_upload_mb)}MB</span>
     <span>LLM：${data.llm_enabled ? "已配置" : "未配置"}</span>
-    <span>模式：广告文案 / 合同条款</span>
+    <span>上传：${escapeHtml(allowedUploads.join(" / "))}</span>
   `;
 }
 
@@ -345,6 +352,11 @@ async function submitFile() {
   const file = dom.fileInput.files?.[0];
   if (!file) {
     setStatus("请选择文件", true);
+    return;
+  }
+  const suffix = `.${file.name.split(".").pop() || ""}`.toLowerCase();
+  if (!allowedUploads.includes(suffix)) {
+    setStatus(`当前部署仅支持：${allowedUploads.join("、")}`, true);
     return;
   }
 

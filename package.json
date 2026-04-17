@@ -1,0 +1,24 @@
+{
+  "name": "ai-compliance-radar",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test:worker": "vitest run",
+    "db:create": "node -e \"console.log('Run: npx wrangler d1 create ai_compliance_radar_db, then copy the returned database_id into wrangler.toml')\"",
+    "db:migrate:local": "wrangler d1 migrations apply ai_compliance_radar_db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply ai_compliance_radar_db --remote"
+  },
+  "dependencies": {
+    "hono": "^4.12.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260417.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.4",
+    "wrangler": "^4.83.0"
+  }
+}

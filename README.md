@@ -3,7 +3,7 @@
 线上展示版：
 - https://ai-compliance-radar.pages.dev
 
-说明：这是 Cloudflare Pages 的前端展示地址，适合直接宣传和分享。
+说明：旧 Cloudflare Pages 地址可能只托管前端。完整可用版本建议使用本仓库新增的 Cloudflare Workers + D1 部署方式。
 
 广告文案合规扫描 + 合同条款预审，面向中小企业的 AI 风险识别工具。
 
@@ -46,6 +46,93 @@ docker compose up --build
 
 ---
 
+## Cloudflare Workers 免费部署
+
+仓库已适配 Cloudflare 原生结构：
+
+- 静态网站：`app/frontend`
+- 云函数 API：`src/worker.ts`
+- 数据库：Cloudflare D1，绑定名 `DB`
+- 规则引擎：`src/rule-engine.ts` + `src/rules.ts`
+
+Cloudflare 版保留核心能力：文本扫描、任务记录、规则命中、txt/md 文件上传。为了优先保证免费层可运行，Cloudflare 版暂不做 docx/pdf 服务端解析；上传 docx/pdf 会返回清晰错误。
+
+### 1. 安装 Node 依赖
+
+```bash
+npm install
+```
+
+### 2. 登录 Cloudflare
+
+```bash
+npx wrangler login
+npx wrangler whoami
+```
+
+如果浏览器 OAuth 没完成，先不要继续部署。
+
+### 3. 创建 D1 数据库
+
+```bash
+npx wrangler d1 create ai_compliance_radar_db
+```
+
+把命令返回的 `database_id` 填入 `wrangler.toml`：
+
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "ai_compliance_radar_db"
+database_id = "这里替换成 Cloudflare 返回的 ID"
+```
+
+### 4. 初始化远程数据库
+
+```bash
+npm run db:migrate:remote
+```
+
+本地开发可先跑：
+
+```bash
+npm run db:migrate:local
+npm run dev
+```
+
+### 5. 部署
+
+```bash
+npm run deploy
+```
+
+部署成功后访问 Wrangler 输出的 `https://<worker>.workers.dev/`。
+
+验证重点：
+
+- `/` 返回网站首页。
+- `/health` 返回 `{"status":"ok"}`。
+- `/api/v1/meta` 返回 JSON，并包含 `allowed_uploads: [".txt", ".md"]`。
+- 提交示例文案后，结果面板可显示风险分值和风险条目。
+
+如果 Cloudflare 后台要求付款信息或信用卡验证，可以停止在 Cloudflare 继续创建付费资源。
+
+### 可选环境变量
+
+Cloudflare Worker 可配置以下 secrets/vars：
+
+```bash
+npx wrangler secret put ADMIN_API_KEY
+npx wrangler secret put LLM_API_KEY
+npx wrangler secret put LLM_BASE_URL
+npx wrangler secret put LLM_MODEL
+```
+
+- `ADMIN_API_KEY`：配置后，任务和扫描接口要求请求头 `X-API-Key`。
+- `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`：三者都配置后，Cloudflare 版允许使用 OpenAI-compatible `/chat/completions` 增强分析。
+
+---
+
 ## 启用 LLM 增强分析
 
 在 .env 中填写（兼容 OpenAI 格式，支持 Claude / OpenAI / DeepSeek）：
@@ -80,7 +167,11 @@ compliance-radar/
 │   ├── main.py           应用入口
 │   └── models.py
 ├── sample_data/          示例广告文案 / 合同
+├── src/                  Cloudflare Worker API + TypeScript 规则引擎
+├── migrations/           Cloudflare D1 数据库迁移
 ├── storage/              运行时数据库 + 上传文件
+├── wrangler.toml         Cloudflare Workers 配置
+├── package.json          Worker 开发、测试、部署脚本
 ├── .env.example
 ├── docker-compose.yml
 └── requirements.txt
