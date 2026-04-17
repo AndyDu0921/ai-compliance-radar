@@ -6,6 +6,10 @@ compatibility_date = "2025-04-01"
 directory = "./app/frontend"
 binding = "ASSETS"
 
+[[routes]]
+pattern = "radar.dssxhydwp.shop"
+custom_domain = true
+
 [[d1_databases]]
 binding = "DB"
 database_name = "ai_compliance_radar_db"
