@@ -72,7 +72,7 @@ LLM_MODEL=claude-sonnet-4-20250514
 compliance-radar/
 ├── app/
 │   ├── data/rules/       规则包 JSON
-│   ├── frontend/         React 前端构建产物（已内嵌）
+│   ├── frontend/         网站首页 + 在线扫描工作台
 │   ├── routers/          FastAPI 路由
 │   ├── services/         规则引擎 / LLM / 文件解析
 │   ├── config.py
@@ -85,6 +85,17 @@ compliance-radar/
 ├── docker-compose.yml
 └── requirements.txt
 ```
+
+---
+
+## Render 部署
+
+仓库已包含 `render.yaml` 和 `Dockerfile`，可通过 Render Blueprint 创建完整 Web Service。
+
+- 服务类型：Docker Web Service
+- 健康检查：`/health`
+- 运行端口：使用平台提供的 `PORT`
+- 默认不启用 LLM，部署后可在 Render Dashboard 中补充 `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL`
 
 ---
 

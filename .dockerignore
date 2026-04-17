@@ -1,0 +1,10 @@
+.env
+.git
+.pytest_cache
+.playwright-cli
+.venv
+__pycache__
+*.pyc
+storage
+docs
+tests

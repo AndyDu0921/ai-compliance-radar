@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ai-compliance-radar
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEFAULT_USE_LLM
+        value: "false"
+      - key: MAX_UPLOAD_MB
+        value: "10"
