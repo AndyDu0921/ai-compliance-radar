@@ -1,4 +1,4 @@
-import type { RiskItem, ScanReport } from "./rule-engine";
+import type { RiskItem } from "./rule-engine";
 import type { ScanMode, Severity } from "./rules";
 
 export interface LlmEnv {

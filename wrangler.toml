@@ -3,7 +3,7 @@ main = "src/worker.ts"
 compatibility_date = "2025-04-01"
 
 [assets]
-directory = "./app/frontend"
+directory = "./public"
 binding = "ASSETS"
 
 [[routes]]

@@ -221,6 +221,7 @@ async function generateReport({
     jobId,
     mode,
     text,
+    deterministicHits,
     title,
     sourceName,
     llmItems,

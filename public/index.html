@@ -6,7 +6,7 @@
   <title>AI合规扫描仪 | Compliance Radar</title>
   <meta
     name="description"
-    content="广告文案合规扫描与合同条款预审网站。粘贴文本或上传文件，几分钟内拿到结构化风险报告、整改建议与人工复核提示。"
+    content="广告文案合规扫描与合同条款预审网站。粘贴文本或上传 txt/md 文件，几分钟内拿到结构化风险报告、整改建议与人工复核提示。"
   >
   <link
     rel="icon"
@@ -36,7 +36,7 @@
         <a href="#developer">开发接入</a>
       </nav>
       <div class="topbar-actions">
-        <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">Swagger</a>
+        <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">API 文档</a>
         <a class="solid-link" href="#workspace">立即试用</a>
       </div>
     </header>
@@ -45,19 +45,19 @@
       <section id="hero" class="hero">
         <div class="hero-copy reveal">
           <p class="eyebrow">广告文案合规扫描 + 合同条款预审</p>
-          <h1>把风险筛查做成一个任何团队都能直接打开的网站。</h1>
+          <h1>把风险筛查做成一个团队打开就能直接用的网站。</h1>
           <p class="hero-body">
             面向中小企业的第一道合规闸门。市场、法务、销售、运营可以直接粘贴内容或上传文件，
             快速看到风险等级、命中规则、修改建议和需要人工复核的条目。
           </p>
           <div class="hero-actions">
             <a class="solid-link" href="#workspace">立即扫描</a>
-            <a class="ghost-link" href="/redoc" target="_blank" rel="noreferrer">查看接口文档</a>
+            <a class="ghost-link" href="/redoc" target="_blank" rel="noreferrer">接口说明</a>
           </div>
           <div class="hero-signals">
             <div>
               <span>支持输入</span>
-              <strong>文本 / TXT / MD / DOCX / PDF</strong>
+              <strong>文本 / TXT / MD</strong>
             </div>
             <div>
               <span>默认模式</span>
@@ -113,7 +113,7 @@
           <article>
             <span>03</span>
             <h3>面向企业流程的 API 接入</h3>
-            <p>前台给业务团队使用，后台仍保留结构化接口，方便 CRM、审批流或 agent 工具接入。</p>
+            <p>前台给业务团队使用，后台保留结构化接口，方便 CRM、审批流或 agent 工具接入。</p>
           </article>
         </div>
       </section>
@@ -123,7 +123,7 @@
           <p class="eyebrow">在线工作台</p>
           <h2>首页直接开始扫描</h2>
           <p>
-            输入文本或上传文档，系统会创建任务并持续轮询结果。页面内直接展示风险分值、问题明细、
+            输入文本或上传文档，系统会同步返回结果。页面内直接展示风险分值、问题明细、
             建议动作和最近任务，减少来回切换页面的摩擦。
           </p>
         </div>
@@ -180,9 +180,9 @@
             <div id="filePane" class="pane">
               <label>
                 <span>文件</span>
-                <input id="fileInput" type="file" accept=".txt,.md,.docx,.pdf">
+                <input id="fileInput" type="file" accept=".txt,.md">
               </label>
-              <p class="helper-text" id="uploadHelpText">支持 `.txt`、`.md`、`.docx`、`.pdf`，文件大小受服务端配置限制。</p>
+              <p class="helper-text" id="uploadHelpText">支持 `.txt`、`.md`，文件大小受服务端配置限制。</p>
               <div class="control-row">
                 <label class="toggle">
                   <input id="useLlmFile" type="checkbox">
@@ -236,13 +236,13 @@
           <p class="eyebrow">开发接入</p>
           <h2>网站给业务团队，接口给技术团队。</h2>
           <p>
-            当前站点保留原有 API，适合继续接到审批流、CRM、agent 工作流或内部平台。
-            业务用户直接访问网页，技术同事通过 Swagger 或 ReDoc 查看请求结构、字段和鉴权方式。
+            当前站点保留结构化 API，适合继续接到审批流、CRM、agent 工作流或内部平台。
+            业务用户直接访问网页，技术同事通过文档页查看请求结构、字段和鉴权方式。
           </p>
         </div>
         <div class="developer-links">
-          <a href="/docs" target="_blank" rel="noreferrer">打开 Swagger</a>
-          <a href="/redoc" target="_blank" rel="noreferrer">打开 ReDoc</a>
+          <a href="/docs" target="_blank" rel="noreferrer">打开 API 文档</a>
+          <a href="/redoc" target="_blank" rel="noreferrer">打开接口说明</a>
           <a href="/health" target="_blank" rel="noreferrer">健康检查</a>
         </div>
       </section>

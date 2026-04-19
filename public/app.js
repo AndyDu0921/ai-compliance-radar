@@ -25,12 +25,12 @@ const dom = {
   titleInput: document.getElementById("titleInput"),
   uploadHelpText: document.getElementById("uploadHelpText"),
   useLlmFile: document.getElementById("useLlmFile"),
-  useLlmText: document.getElementById("useLlmText"),
+  useLlmText: document.getElementById("useLlmText")
 };
 
 let activeMode = "ad_copy";
 let activeJobId = null;
-let allowedUploads = [".txt", ".md", ".docx", ".pdf"];
+let allowedUploads = [".txt", ".md"];
 
 function setStatus(message, isError = false) {
   dom.statusBadge.textContent = message;
@@ -73,7 +73,7 @@ function formatSeverity(severity) {
     high: "High",
     medium: "Medium",
     low: "Low",
-    info: "Info",
+    info: "Info"
   }[severity] || severity;
 }
 
@@ -231,6 +231,14 @@ function renderResult(job) {
   `;
 }
 
+function renderSubmittedJob(payload, title) {
+  renderResult({
+    id: payload.job_id,
+    title: title || payload.result?.title || null,
+    result: payload.result
+  });
+}
+
 async function fetchMeta() {
   const response = await fetch("/api/v1/meta");
   const data = await response.json();
@@ -238,9 +246,9 @@ async function fetchMeta() {
   dom.useLlmFile.checked = Boolean(data.llm_enabled);
   if (Array.isArray(data.allowed_uploads) && data.allowed_uploads.length) {
     allowedUploads = data.allowed_uploads;
-    dom.fileInput.accept = allowedUploads.join(",");
-    dom.uploadHelpText.textContent = `支持 ${allowedUploads.join("、")}，文件大小受服务端配置限制。`;
   }
+  dom.fileInput.accept = allowedUploads.join(",");
+  dom.uploadHelpText.textContent = `支持 ${allowedUploads.join("、")}，文件大小受服务端配置限制。`;
   renderRulepacks(data.rulepacks || []);
   dom.metaStrip.innerHTML = `
     <span>最大上传：${escapeHtml(data.max_upload_mb)}MB</span>
@@ -252,11 +260,9 @@ async function fetchMeta() {
 async function refreshJobsListSilently() {
   const response = await fetch("/api/v1/jobs", { headers: apiHeaders() });
   if (!response.ok) {
-    return [];
+    return;
   }
-  const jobs = await response.json();
-  renderRecentJobs(jobs);
-  return jobs;
+  renderRecentJobs(await response.json());
 }
 
 async function fetchJobs() {
@@ -286,41 +292,12 @@ async function loadJob(jobId) {
   }
   await refreshJobsListSilently();
   renderResult(payload);
-  if (["queued", "pending", "processing"].includes(payload.status)) {
-    pollJob(jobId);
-    return;
-  }
   setStatus("Report loaded");
-}
-
-async function pollJob(jobId) {
-  const timeoutAt = Date.now() + 120000;
-  while (Date.now() < timeoutAt) {
-    await new Promise((resolve) => window.setTimeout(resolve, 1800));
-    const response = await fetch(`/api/v1/jobs/${jobId}`, { headers: apiHeaders() });
-    const payload = await safeJson(response);
-    if (!response.ok) {
-      setStatus(payload.detail || "Polling failed", true);
-      return;
-    }
-    renderResult(payload);
-    if (payload.status === "completed") {
-      await refreshJobsListSilently();
-      setStatus("Completed");
-      return;
-    }
-    if (payload.status === "failed") {
-      await refreshJobsListSilently();
-      setStatus(payload.error_message || "Scan failed", true);
-      return;
-    }
-    setStatus(`Scanning · ${payload.status}`);
-  }
-  setStatus("Polling timeout", true);
 }
 
 async function submitText() {
   const text = dom.textInput.value.trim();
+  const title = dom.titleInput.value.trim() || null;
   if (!text) {
     setStatus("请输入待扫描内容", true);
     return;
@@ -333,9 +310,9 @@ async function submitText() {
     body: JSON.stringify({
       mode: activeMode,
       text,
-      title: dom.titleInput.value.trim() || null,
-      use_llm: dom.useLlmText.checked,
-    }),
+      title,
+      use_llm: dom.useLlmText.checked
+    })
   });
   const payload = await safeJson(response);
   if (!response.ok) {
@@ -343,13 +320,14 @@ async function submitText() {
     return;
   }
   activeJobId = payload.job_id;
+  renderSubmittedJob(payload, title);
   await refreshJobsListSilently();
-  setStatus("Queued");
-  pollJob(payload.job_id);
+  setStatus("Completed");
 }
 
 async function submitFile() {
   const file = dom.fileInput.files?.[0];
+  const title = dom.titleInput.value.trim() || null;
   if (!file) {
     setStatus("请选择文件", true);
     return;
@@ -364,13 +342,13 @@ async function submitFile() {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("mode", activeMode);
-  formData.append("title", dom.titleInput.value.trim());
+  formData.append("title", title || "");
   formData.append("use_llm", String(dom.useLlmFile.checked));
 
   const response = await fetch("/api/v1/scan/file", {
     method: "POST",
     headers: apiHeaders(),
-    body: formData,
+    body: formData
   });
   const payload = await safeJson(response);
   if (!response.ok) {
@@ -378,9 +356,9 @@ async function submitFile() {
     return;
   }
   activeJobId = payload.job_id;
+  renderSubmittedJob(payload, title);
   await refreshJobsListSilently();
-  setStatus("Queued");
-  pollJob(payload.job_id);
+  setStatus("Completed");
 }
 
 function fillSample() {

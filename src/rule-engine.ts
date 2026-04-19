@@ -85,6 +85,7 @@ export function buildRuleBasedReport({
   jobId,
   mode,
   text,
+  deterministicHits,
   title,
   sourceName,
   llmItems = [],
@@ -98,6 +99,7 @@ export function buildRuleBasedReport({
   jobId: string;
   mode: ScanMode;
   text: string;
+  deterministicHits?: RiskItem[];
   title: string | null;
   sourceName?: string | null;
   llmItems?: RiskItem[];
@@ -109,9 +111,9 @@ export function buildRuleBasedReport({
   llmWarning?: string;
 }): ScanReport {
   const normalized = text.trim();
-  const deterministicHits = scanRules({ mode, text: normalized });
-  const combined = mergeFindings(deterministicHits, llmItems);
-  let riskScore = Math.min(100, scoreFindings(deterministicHits) + Math.max(0, riskScoreAdjustment));
+  const ruleHits = deterministicHits ?? scanRules({ mode, text: normalized });
+  const combined = mergeFindings(ruleHits, llmItems);
+  let riskScore = Math.min(100, scoreFindings(ruleHits) + Math.max(0, riskScoreAdjustment));
   if (llmItems.length) {
     riskScore = Math.min(100, Math.max(riskScore, scoreFindings(combined)));
   }
@@ -137,7 +139,7 @@ export function buildRuleBasedReport({
     risk_items: combined,
     warnings,
     llm_used: llmUsed,
-    deterministic_hit_count: deterministicHits.length,
+    deterministic_hit_count: ruleHits.length,
     metadata: {
       source_name: sourceName ?? null,
       content_length: normalized.length,
