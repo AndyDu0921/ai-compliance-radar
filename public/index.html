@@ -2,251 +2,269 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI合规扫描仪 | Compliance Radar</title>
-  <meta
-    name="description"
-    content="广告文案合规扫描与合同条款预审网站。粘贴文本或上传 txt/md 文件，几分钟内拿到结构化风险报告、整改建议与人工复核提示。"
-  >
-  <link
-    rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%23db6e2f'/%3E%3Cstop offset='1' stop-color='%232e8f7b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='%23122321'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='url(%23g)' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23f5f0e8'/%3E%3Cpath d='M32 9A23 23 0 0 1 55 32H32Z' fill='url(%23g)' opacity='.85'/%3E%3C/svg%3E"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Compliance Radar | AI合规扫描仪</title>
+  <meta name="description" content="企业级广告文案合规扫描与合同条款预审平台。通过结构化风险报告、整改建议提升业务团队合规审查效率。">
+  
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23000'/%3E%3Cpath d='M32 16a16 16 0 1 0 16 16 16.018 16.018 0 0 0-16-16zm0 28a12 12 0 1 1 12-12 12.013 12.013 0 0 1-12 12z' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23fff'/%3E%3C/svg%3E">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700;800&family=Noto+Serif+SC:wght@600;700&display=swap"
-    rel="stylesheet"
-  >
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <a class="brand" href="#hero" aria-label="AI合规扫描仪首页">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span>
-          <strong>AI合规扫描仪</strong>
-          <em>Compliance Radar</em>
-        </span>
-      </a>
-      <nav class="topnav" aria-label="主导航">
-        <a href="#workspace">开始扫描</a>
-        <a href="#capabilities">适用场景</a>
-        <a href="#developer">开发接入</a>
-      </nav>
-      <div class="topbar-actions">
-        <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">API 文档</a>
-        <a class="solid-link" href="#workspace">立即试用</a>
+  <div class="app-layout">
+    <header class="app-header">
+      <div class="header-container">
+        <a class="brand-logo" href="#hero">
+          <div class="logo-mark"></div>
+          <div class="logo-text">
+            <strong>Compliance Radar</strong>
+            <span>AI合规扫描仪</span>
+          </div>
+        </a>
+        <nav class="desktop-nav">
+          <a href="#workspace" class="nav-item">开始扫描</a>
+          <a href="#capabilities" class="nav-item">适用场景</a>
+          <a href="#developer" class="nav-item">API接入</a>
+        </nav>
+        <div class="header-actions">
+          <a href="/docs" target="_blank" class="button-secondary">开发文档</a>
+          <a href="#workspace" class="button-primary">立即使用</a>
+        </div>
       </div>
     </header>
 
-    <main>
-      <section id="hero" class="hero">
-        <div class="hero-copy reveal">
-          <p class="eyebrow">广告文案合规扫描 + 合同条款预审</p>
-          <h1>把风险筛查做成一个团队打开就能直接用的网站。</h1>
-          <p class="hero-body">
-            面向中小企业的第一道合规闸门。市场、法务、销售、运营可以直接粘贴内容或上传文件，
-            快速看到风险等级、命中规则、修改建议和需要人工复核的条目。
+    <main class="app-main">
+      <section id="hero" class="hero-section">
+        <div class="hero-content fade-in-up">
+          <div class="hero-badge">智能合规筛查系统</div>
+          <h1 class="hero-title">业务前沿的<br/>合规防御阵地。</h1>
+          <p class="hero-description">
+            无需繁琐配置，团队开箱即用的风险审查工作站。
+            分钟级输出高精度的广告文案风险评级与合同条款审查报告。
           </p>
-          <div class="hero-actions">
-            <a class="solid-link" href="#workspace">立即扫描</a>
-            <a class="ghost-link" href="/redoc" target="_blank" rel="noreferrer">接口说明</a>
-          </div>
-          <div class="hero-signals">
-            <div>
-              <span>支持输入</span>
-              <strong>文本 / TXT / MD</strong>
-            </div>
-            <div>
-              <span>默认模式</span>
-              <strong>广告审查 / 合同预审</strong>
-            </div>
-            <div>
-              <span>风险输出</span>
-              <strong>评分 / 问题 / 建议 / 复核提醒</strong>
-            </div>
+          <div class="hero-cta">
+            <button class="button-primary large" onclick="document.getElementById('workspace').scrollIntoView({behavior: 'smooth'})">开启合规扫描</button>
+            <a href="/docs" target="_blank" class="button-secondary large">查阅 API 文档</a>
           </div>
         </div>
-
-        <div class="hero-visual reveal" aria-hidden="true">
-          <div class="radar-stage">
-            <div class="radar-grid"></div>
-            <div class="radar-core"></div>
-            <div class="radar-ring ring-a"></div>
-            <div class="radar-ring ring-b"></div>
-            <div class="radar-ring ring-c"></div>
-            <div class="radar-sweep"></div>
-            <div class="signal signal-a">
-              <span>绝对化承诺</span>
-              <strong>HIGH</strong>
+        
+        <div class="hero-visual fade-in-up delay-1">
+          <div class="glass-card scanner-preview">
+            <div class="scanner-header">
+              <div class="window-controls">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="scanner-title">Risk Assessment Report</div>
             </div>
-            <div class="signal signal-b">
-              <span>单方解释权</span>
-              <strong>CRITICAL</strong>
-            </div>
-            <div class="signal signal-c">
-              <span>人工复核</span>
-              <strong>REVIEW</strong>
+            <div class="scanner-body">
+              <div class="scanner-line scanning"></div>
+              <div class="mock-text">
+                <div class="mock-line"></div>
+                <div class="mock-line short"></div>
+                <div class="mock-line highlight"></div>
+                <div class="mock-line"></div>
+              </div>
+              <div class="mock-results">
+                <div class="mock-badge critical">Critical Risk</div>
+                <div class="mock-badge review">Manual Review</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="capabilities" class="band reveal">
-        <div class="band-copy">
-          <p class="eyebrow">适用场景</p>
-          <h2>不是给工程师调接口的演示页，而是给真实业务团队开箱即用的工作入口。</h2>
+      <section id="capabilities" class="features-section fade-in-up delay-2">
+        <div class="section-header">
+          <h2 class="section-title">精准，高效，专业</h2>
+          <p class="section-subtitle">专为现代企业风控流程打造的核心特性。</p>
         </div>
-        <div class="band-grid">
-          <article>
-            <span>01</span>
-            <h3>广告与内容发布前筛查</h3>
-            <p>识别保证性表述、夸大宣传、诱导性紧迫措辞和高风险行业敏感用语。</p>
-          </article>
-          <article>
-            <span>02</span>
-            <h3>合同初筛与谈判前预审</h3>
-            <p>定位单方免责、退款限制、验收口径模糊和争议解决不平衡条款。</p>
-          </article>
-          <article>
-            <span>03</span>
-            <h3>面向企业流程的 API 接入</h3>
-            <p>前台给业务团队使用，后台保留结构化接口，方便 CRM、审批流或 agent 工具接入。</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="workspace" class="workspace reveal">
-        <div class="workspace-intro">
-          <p class="eyebrow">在线工作台</p>
-          <h2>首页直接开始扫描</h2>
-          <p>
-            输入文本或上传文档，系统会同步返回结果。页面内直接展示风险分值、问题明细、
-            建议动作和最近任务，减少来回切换页面的摩擦。
-          </p>
-        </div>
-
-        <div class="workspace-grid">
-          <form class="composer" aria-label="扫描输入区" onsubmit="return false;">
-            <div class="composer-topline">
-              <div>
-                <p class="mini-label">SCAN ENTRY</p>
-                <h3>新建扫描任务</h3>
-              </div>
-              <div class="status-pill" id="statusBadge">Ready</div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
-
-            <div class="mode-switch" role="tablist" aria-label="扫描模式">
-              <button class="mode-button active" data-mode="ad_copy" type="button">广告文案</button>
-              <button class="mode-button" data-mode="contract_review" type="button">合同条款</button>
+            <h3>广告法违禁词过滤</h3>
+            <p>基于最新法规库，精确识别绝对化承诺、夸大宣传、敏感用语等高风险文案，防范于未然。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z"></path></svg>
             </div>
-
-            <div class="form-grid">
-              <label>
-                <span>标题</span>
-                <input id="titleInput" type="text" maxlength="255" placeholder="例如：618 直播海报 / SaaS 服务合同">
-              </label>
-              <label>
-                <span>API Key</span>
-                <input id="apiKeyInput" type="text" autocomplete="off" spellcheck="false" placeholder="仅在启用保护时填写">
-              </label>
+            <h3>合同条款预审</h3>
+            <p>智能提取单方免责、管辖权争议等不平等条款，给出专业建议，辅助法务人员快速决策。</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
             </div>
-
-            <div class="segment-switch" aria-label="输入方式">
-              <button class="segment active" data-pane="textPane" type="button">粘贴文本</button>
-              <button class="segment" data-pane="filePane" type="button">上传文件</button>
-            </div>
-
-            <div id="textPane" class="pane active">
-              <label>
-                <span>内容</span>
-                <textarea id="textInput" rows="14" placeholder="粘贴广告文案、直播脚本、落地页文案或促销活动内容。"></textarea>
-              </label>
-              <div class="quick-actions">
-                <button id="fillSampleBtn" type="button">填入示例</button>
-                <button id="clearTextBtn" type="button">清空内容</button>
-              </div>
-              <div class="control-row">
-                <label class="toggle">
-                  <input id="useLlmText" type="checkbox">
-                  <span>启用 LLM 增强分析</span>
-                </label>
-                <button id="scanTextBtn" class="solid-link button-link" type="button">开始文本扫描</button>
-              </div>
-            </div>
-
-            <div id="filePane" class="pane">
-              <label>
-                <span>文件</span>
-                <input id="fileInput" type="file" accept=".txt,.md">
-              </label>
-              <p class="helper-text" id="uploadHelpText">支持 `.txt`、`.md`，文件大小受服务端配置限制。</p>
-              <div class="control-row">
-                <label class="toggle">
-                  <input id="useLlmFile" type="checkbox">
-                  <span>启用 LLM 增强分析</span>
-                </label>
-                <button id="scanFileBtn" class="solid-link button-link" type="button">上传并扫描</button>
-              </div>
-            </div>
-
-            <div class="info-strip" id="metaStrip">
-              <span>正在读取站点配置...</span>
-            </div>
-          </form>
-
-          <aside class="overview" aria-label="站点与任务侧栏">
-            <div class="overview-block">
-              <p class="mini-label">RULE PACKS</p>
-              <div id="rulepackList" class="rulepack-list">
-                <p class="helper-text">载入中...</p>
-              </div>
-            </div>
-            <div class="overview-block">
-              <p class="mini-label">RECENT JOBS</p>
-              <div id="recentJobs" class="recent-jobs">
-                <p class="helper-text">暂无任务。</p>
-              </div>
-            </div>
-          </aside>
+            <h3>API 深度集成</h3>
+            <p>提供标准化 REST API，轻松接入现有的审批流、OA 系统或 CRM 工作台，实现自动化风控。</p>
+          </div>
         </div>
       </section>
 
-      <section class="results reveal">
-        <div class="section-head">
+      <section id="workspace" class="workspace-section fade-in-up">
+        <div class="workspace-container">
+          <div class="workspace-sidebar">
+            <div class="sidebar-block">
+              <h4 class="sidebar-heading">引擎状态</h4>
+              <div class="status-indicator">
+                <span id="statusBadge" class="status-dot"></span>
+                <span id="statusText">系统就绪</span>
+              </div>
+            </div>
+            
+            <div class="sidebar-block">
+              <h4 class="sidebar-heading">活动任务</h4>
+              <div id="recentJobs" class="recent-jobs-list">
+                <div class="empty-state-small">载入中...</div>
+              </div>
+            </div>
+
+            <div class="sidebar-block">
+              <h4 class="sidebar-heading">系统配置</h4>
+              <div id="metaStrip" class="meta-info">
+                读取中...
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace-main">
+            <form class="scan-form glass-panel" onsubmit="return false;">
+              <div class="form-header">
+                <h3>新建任务</h3>
+              </div>
+
+              <div class="segmented-control mode-switch">
+                <button class="segment-btn active" data-mode="ad_copy" type="button">广告文案扫描</button>
+                <button class="segment-btn" data-mode="contract_review" type="button">合同条款预审</button>
+              </div>
+
+              <div class="form-row two-cols">
+                <div class="form-group">
+                  <label for="titleInput">任务标题 (可选)</label>
+                  <input id="titleInput" type="text" placeholder="例如：双十一预热海报文案">
+                </div>
+                <div class="form-group">
+                  <label for="apiKeyInput">API Key (可选)</label>
+                  <input id="apiKeyInput" type="password" autocomplete="off" placeholder="访问受限资源时填写">
+                </div>
+              </div>
+
+              <div class="input-method-switch">
+                <button class="tab-btn active" data-pane="textPane" type="button">粘贴文本</button>
+                <button class="tab-btn" data-pane="filePane" type="button">上传文件</button>
+              </div>
+
+              <div id="textPane" class="input-pane active">
+                <textarea id="textInput" class="modern-textarea" placeholder="在此粘贴需要检查的文本内容..."></textarea>
+                <div class="pane-actions">
+                  <div class="left-actions">
+                    <button id="fillSampleBtn" class="text-btn" type="button">加载示例文本</button>
+                    <button id="clearTextBtn" class="text-btn danger" type="button">清空</button>
+                  </div>
+                  <div class="right-actions">
+                    <label class="toggle-switch">
+                      <input id="useLlmText" type="checkbox">
+                      <span class="slider"></span>
+                      <span class="toggle-label">深度 AI 增强</span>
+                    </label>
+                    <button id="scanTextBtn" class="button-primary" type="button">开始扫描</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="filePane" class="input-pane">
+                <div class="file-upload-zone" id="fileDropZone">
+                  <input id="fileInput" type="file" accept=".txt,.md" class="hidden-file-input">
+                  <div class="upload-content">
+                    <svg class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <p class="upload-text">点击或拖拽文件到此处</p>
+                    <p id="uploadHelpText" class="upload-hint">支持 .txt 和 .md 格式</p>
+                  </div>
+                </div>
+                <div class="pane-actions">
+                  <div class="left-actions"></div>
+                  <div class="right-actions">
+                    <label class="toggle-switch">
+                      <input id="useLlmFile" type="checkbox">
+                      <span class="slider"></span>
+                      <span class="toggle-label">深度 AI 增强</span>
+                    </label>
+                    <button id="scanFileBtn" class="button-primary" type="button">上传并扫描</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="results-section fade-in-up">
+        <div class="section-header flex-between">
           <div>
-            <p class="eyebrow">结果面板</p>
-            <h2>结构化输出，适合人工判断，也适合后续集成</h2>
+            <h2 class="section-title">分析报告</h2>
+            <p class="section-subtitle">结构化风险展现，便于人工决策复核。</p>
           </div>
-          <button id="refreshBtn" type="button">刷新任务</button>
+          <button id="refreshBtn" class="button-secondary small" type="button">刷新状态</button>
         </div>
 
-        <div id="emptyState" class="result-empty">
-          <h3>等待第一份报告</h3>
-          <p>提交内容后，这里会展示风险分值、摘要、建议动作、警示事项和逐条风险定位。</p>
+        <div id="emptyState" class="report-empty glass-panel">
+          <div class="empty-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <h3>暂无报告</h3>
+          <p>提交扫描任务后，系统将在此处生成详细的风险分析报告。</p>
         </div>
 
-        <div id="resultPane" class="result-pane hidden"></div>
+        <div id="resultPane" class="report-content hidden">
+          <!-- Dynamically populated by JS -->
+        </div>
       </section>
 
-      <section id="developer" class="developer reveal">
-        <div class="developer-copy">
-          <p class="eyebrow">开发接入</p>
-          <h2>网站给业务团队，接口给技术团队。</h2>
-          <p>
-            当前站点保留结构化 API，适合继续接到审批流、CRM、agent 工作流或内部平台。
-            业务用户直接访问网页，技术同事通过文档页查看请求结构、字段和鉴权方式。
-          </p>
-        </div>
-        <div class="developer-links">
-          <a href="/docs" target="_blank" rel="noreferrer">打开 API 文档</a>
-          <a href="/redoc" target="_blank" rel="noreferrer">打开接口说明</a>
-          <a href="/health" target="_blank" rel="noreferrer">健康检查</a>
+      <section id="developer" class="developer-section fade-in-up">
+        <div class="dev-card glass-panel">
+          <div class="dev-content">
+            <h2>为开发者构建</h2>
+            <p>Compliance Radar 提供了完整的 REST API 支持，允许开发者将其无缝集成到内部审核流、ERP、审批平台或现有的 Agent 工作流中。</p>
+            <div class="dev-links">
+              <a href="/docs" target="_blank" class="button-primary">阅读 API 文档</a>
+              <a href="/health" target="_blank" class="button-secondary">系统健康状态</a>
+            </div>
+          </div>
+          <div class="dev-code">
+            <pre><code><span class="keyword">const</span> <span class="variable">response</span> = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'/api/v1/scan/text'</span>, {
+  <span class="property">method</span>: <span class="string">'POST'</span>,
+  <span class="property">headers</span>: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+  <span class="property">body</span>: <span class="built_in">JSON</span>.<span class="function">stringify</span>({
+    <span class="property">mode</span>: <span class="string">'ad_copy'</span>,
+    <span class="property">text</span>: <span class="string">'全网第一的瘦身方案！'</span>
+  })
+});</code></pre>
+          </div>
         </div>
       </section>
     </main>
+
+    <footer class="app-footer">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <strong>Compliance Radar</strong>
+        </div>
+        <div class="footer-links">
+          <a href="/docs">API 文档</a>
+          <a href="#">隐私政策</a>
+          <a href="#">服务条款</a>
+        </div>
+        <div class="footer-copyright">
+          &copy; 2026 Compliance Radar. All rights reserved.
+        </div>
+      </div>
+    </footer>
   </div>
 
   <script src="/app.js" defer></script>

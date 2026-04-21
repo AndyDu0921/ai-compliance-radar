@@ -10,17 +10,18 @@ const dom = {
   apiKeyInput: document.getElementById("apiKeyInput"),
   emptyState: document.getElementById("emptyState"),
   fileInput: document.getElementById("fileInput"),
+  fileDropZone: document.getElementById("fileDropZone"),
   fillSampleBtn: document.getElementById("fillSampleBtn"),
   metaStrip: document.getElementById("metaStrip"),
-  modeButtons: Array.from(document.querySelectorAll(".mode-button")),
-  paneButtons: Array.from(document.querySelectorAll(".segment")),
+  modeButtons: Array.from(document.querySelectorAll(".segment-btn")),
+  paneButtons: Array.from(document.querySelectorAll(".tab-btn")),
   recentJobs: document.getElementById("recentJobs"),
   refreshBtn: document.getElementById("refreshBtn"),
   resultPane: document.getElementById("resultPane"),
-  rulepackList: document.getElementById("rulepackList"),
   scanFileBtn: document.getElementById("scanFileBtn"),
   scanTextBtn: document.getElementById("scanTextBtn"),
   statusBadge: document.getElementById("statusBadge"),
+  statusText: document.getElementById("statusText"),
   textInput: document.getElementById("textInput"),
   titleInput: document.getElementById("titleInput"),
   uploadHelpText: document.getElementById("uploadHelpText"),
@@ -32,9 +33,14 @@ let activeMode = "ad_copy";
 let activeJobId = null;
 let allowedUploads = [".txt", ".md"];
 
-function setStatus(message, isError = false) {
-  dom.statusBadge.textContent = message;
-  dom.statusBadge.classList.toggle("error", isError);
+function setStatus(message, state = "success") {
+  if (dom.statusText) dom.statusText.textContent = message;
+  
+  if (dom.statusBadge) {
+    dom.statusBadge.className = "status-dot";
+    if (state === "error") dom.statusBadge.classList.add("error");
+    if (state === "processing") dom.statusBadge.classList.add("processing");
+  }
 }
 
 function apiHeaders(extra = {}) {
@@ -91,57 +97,39 @@ function updateMode(mode) {
   });
   dom.textInput.placeholder =
     mode === "contract_review"
-      ? "粘贴合同、协议、补充条款或采购单中的关键内容。"
-      : "粘贴广告文案、直播脚本、落地页文案或促销活动内容。";
+      ? "粘贴合同、协议、补充条款或采购单中的关键内容..."
+      : "粘贴广告文案、直播脚本、落地页文案或促销活动内容...";
 }
 
 function switchPane(paneId) {
   dom.paneButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.pane === paneId);
   });
-  document.querySelectorAll(".pane").forEach((pane) => {
+  document.querySelectorAll(".input-pane").forEach((pane) => {
     pane.classList.toggle("active", pane.id === paneId);
   });
 }
 
-function renderRulepacks(rulepacks) {
-  if (!rulepacks.length) {
-    dom.rulepackList.innerHTML = '<p class="helper-text">尚未发现规则包。</p>';
-    return;
-  }
-  dom.rulepackList.innerHTML = rulepacks
-    .map(
-      (pack) => `
-        <div class="rulepack-card">
-          <strong>${escapeHtml(formatMode(pack.mode))}</strong>
-          <small>${pack.rule_count} 条规则 · ${pack.critical_rules} 条高优先级</small>
-        </div>
-      `
-    )
-    .join("");
-}
-
 function renderRecentJobs(jobs) {
   if (!jobs.length) {
-    dom.recentJobs.innerHTML = '<p class="helper-text">还没有任务记录。</p>';
+    dom.recentJobs.innerHTML = '<div class="empty-state-small">暂无任务记录</div>';
     return;
   }
   dom.recentJobs.innerHTML = jobs
     .map((job) => {
-      const title = job.title || job.file_name || `任务 ${job.id.slice(0, 8)}`;
+      const title = job.title || job.file_name || `Task ${job.id.slice(0, 8)}`;
       const activeClass = job.id === activeJobId ? " active" : "";
       return `
-        <button class="job-card${activeClass}" type="button" data-job-id="${job.id}">
+        <div class="job-item${activeClass}" data-job-id="${job.id}">
           <strong>${escapeHtml(title)}</strong>
-          <small>${escapeHtml(formatMode(job.mode))} · ${escapeHtml(job.status)}</small>
-          <small>${new Date(job.created_at).toLocaleString("zh-CN")}</small>
-        </button>
+          <small>${escapeHtml(formatMode(job.mode))} · ${new Date(job.created_at).toLocaleDateString()}</small>
+        </div>
       `;
     })
     .join("");
 
-  dom.recentJobs.querySelectorAll(".job-card").forEach((button) => {
-    button.addEventListener("click", () => loadJob(button.dataset.jobId));
+  dom.recentJobs.querySelectorAll(".job-item").forEach((item) => {
+    item.addEventListener("click", () => loadJob(item.dataset.jobId));
   });
 }
 
@@ -154,80 +142,84 @@ function renderResult(job) {
   }
 
   const { result } = job;
-  const warnings = result.warnings?.length ? result.warnings : ["未返回额外警示项。"];
-  const actions = result.recommended_actions?.length ? result.recommended_actions : ["当前未返回建议动作。"];
+  const warnings = result.warnings?.length ? result.warnings : ["未发现显著警告项。"];
+  const actions = result.recommended_actions?.length ? result.recommended_actions : ["无需特定修正动作。"];
   const findings = result.risk_items?.length ? result.risk_items : [];
 
   dom.emptyState.classList.add("hidden");
   dom.resultPane.classList.remove("hidden");
+  
   dom.resultPane.innerHTML = `
-    <div class="result-metrics">
-      <article class="result-card">
-        <small>风险分值</small>
-        <strong>${escapeHtml(result.risk_score)}</strong>
-        <small>${escapeHtml(scoreLabel(result.risk_score))}</small>
-      </article>
-      <article class="result-card">
-        <small>命中规则</small>
-        <strong>${escapeHtml(result.deterministic_hit_count)}</strong>
-        <small>规则引擎识别到的确定性问题</small>
-      </article>
-      <article class="result-card">
-        <small>模式</small>
-        <strong>${escapeHtml(formatMode(result.mode))}</strong>
-        <small>${result.llm_used ? "已启用 LLM 增强" : "规则扫描模式"}</small>
-      </article>
-      <article class="result-card">
-        <small>报告标题</small>
-        <strong>${escapeHtml(job.title || result.title || "未命名")}</strong>
-        <small>任务 ID: ${escapeHtml(job.id.slice(0, 8))}</small>
-      </article>
+    <div class="result-overview">
+      <div class="metric-card">
+        <div class="metric-label">风险评级分值</div>
+        <div class="metric-value" style="color: ${result.risk_score >= 80 ? 'var(--status-critical)' : result.risk_score >= 50 ? 'var(--status-warning)' : 'var(--text-primary)'}">${escapeHtml(result.risk_score)}</div>
+        <div class="metric-desc">${escapeHtml(scoreLabel(result.risk_score))}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">明确违规项</div>
+        <div class="metric-value">${escapeHtml(result.deterministic_hit_count)}</div>
+        <div class="metric-desc">规则引擎匹配</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">审查模式</div>
+        <div class="metric-value" style="font-size: 24px; padding-top: 6px;">${escapeHtml(formatMode(result.mode))}</div>
+        <div class="metric-desc">${result.llm_used ? "AI 深度增强已开启" : "基础规则扫描"}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">任务引用</div>
+        <div class="metric-value" style="font-size: 16px; padding-top: 10px; font-weight: 500; word-break: break-all;">${escapeHtml(job.id.slice(0, 12))}...</div>
+        <div class="metric-desc">${escapeHtml(job.title || result.title || "未命名文档")}</div>
+      </div>
     </div>
-    <section class="result-block">
-      <h3>摘要</h3>
+
+    <div class="report-block">
+      <h3>执行摘要</h3>
       <p>${escapeHtml(result.summary)}</p>
-    </section>
-    <section class="result-block">
-      <h3>建议动作</h3>
-      <ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    </section>
-    <section class="result-block">
-      <h3>警示事项</h3>
-      <ul>${warnings.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    </section>
-    <section class="result-block">
-      <h3>风险明细</h3>
-      <div class="risk-list">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+      <div class="report-block" style="margin-bottom: 0;">
+        <h3>建议整改方案</h3>
+        <ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </div>
+      <div class="report-block" style="margin-bottom: 0;">
+        <h3>人工复核提示</h3>
+        <ul>${warnings.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </div>
+    </div>
+
+    <div class="report-block">
+      <h3>风险明细清单</h3>
+      <div class="risk-items-container">
         ${
           findings.length
             ? findings
                 .map(
                   (item) => `
-                    <article class="risk-item severity-${escapeHtml(item.severity)}">
+                    <div class="risk-item">
                       <div class="risk-header">
                         <div>
-                          <strong>${escapeHtml(item.title)}</strong>
-                          <div class="risk-meta">
-                            <span>${escapeHtml(item.category)}</span>
-                            <span>${escapeHtml(item.source)}</span>
-                            <span>置信度 ${Math.round((item.confidence || 0) * 100)}%</span>
+                          <div class="risk-title">${escapeHtml(item.title)}</div>
+                          <div class="risk-meta-tags">
+                            <span class="meta-tag">${escapeHtml(item.category)}</span>
+                            <span class="meta-tag">${escapeHtml(item.source)}</span>
+                            <span class="meta-tag">置信度 ${Math.round((item.confidence || 0) * 100)}%</span>
                           </div>
                         </div>
-                        <span class="risk-tag">${escapeHtml(formatSeverity(item.severity))}</span>
+                        <div class="severity-badge severity-${escapeHtml(item.severity)}">${escapeHtml(formatSeverity(item.severity))}</div>
                       </div>
-                      <p>${escapeHtml(item.explanation || "未提供解释。")}</p>
-                      ${item.excerpt ? `<blockquote class="quote">${escapeHtml(item.excerpt)}</blockquote>` : ""}
-                      <div class="risk-footer">
-                        <small>${escapeHtml(item.suggestion || "暂无修改建议。")}</small>
-                      </div>
-                    </article>
+                      <div class="risk-explanation">${escapeHtml(item.explanation || "未提供详细解释。")}</div>
+                      ${item.excerpt ? `<div class="risk-excerpt">${escapeHtml(item.excerpt)}</div>` : ""}
+                      <div class="risk-suggestion">${escapeHtml(item.suggestion || "暂无具体修改建议。")}</div>
+                    </div>
                   `
                 )
                 .join("")
-            : '<div class="result-card"><strong>未发现明确风险项</strong><small>这表示内容通过了首轮规则筛查，不代表可以跳过人工判断。</small></div>'
+            : '<div class="risk-item"><div class="risk-title">未发现高优风险项</div><div class="risk-explanation" style="margin-top: 8px;">系统未能在此内容中匹配到明确违规点。请注意，机器审核不可替代最终的人工法务终审。</div></div>'
         }
       </div>
-    </section>
+    </div>
   `;
 }
 
@@ -248,20 +240,18 @@ async function fetchMeta() {
     allowedUploads = data.allowed_uploads;
   }
   dom.fileInput.accept = allowedUploads.join(",");
-  dom.uploadHelpText.textContent = `支持 ${allowedUploads.join("、")}，文件大小受服务端配置限制。`;
-  renderRulepacks(data.rulepacks || []);
+  dom.uploadHelpText.textContent = `支持 ${allowedUploads.join("、")}。最大体积 ${escapeHtml(data.max_upload_mb)}MB`;
+  
   dom.metaStrip.innerHTML = `
-    <span>最大上传：${escapeHtml(data.max_upload_mb)}MB</span>
-    <span>LLM：${data.llm_enabled ? "已配置" : "未配置"}</span>
-    <span>上传：${escapeHtml(allowedUploads.join(" / "))}</span>
+    <span><span>系统架构</span> <span>Cloudflare Workers</span></span>
+    <span><span>文件限制</span> <span>${escapeHtml(data.max_upload_mb)}MB max</span></span>
+    <span><span>AI 增强模块</span> <span>${data.llm_enabled ? "Online" : "Offline"}</span></span>
   `;
 }
 
 async function refreshJobsListSilently() {
   const response = await fetch("/api/v1/jobs", { headers: apiHeaders() });
-  if (!response.ok) {
-    return;
-  }
+  if (!response.ok) return;
   renderRecentJobs(await response.json());
 }
 
@@ -270,11 +260,11 @@ async function fetchJobs() {
   const payload = await safeJson(response);
   if (!response.ok) {
     dom.recentJobs.innerHTML = `
-      <p class="helper-text">${
+      <div class="empty-state-small">${
         response.status === 401
-          ? "当前环境已启用 API Key，填写后可查看最近任务。"
-          : "最近任务读取失败。"
-      }</p>
+          ? "需输入 API Key 以查看历史"
+          : "历史记录读取失败"
+      }</div>
     `;
     return;
   }
@@ -283,27 +273,30 @@ async function fetchJobs() {
 
 async function loadJob(jobId) {
   activeJobId = jobId;
-  setStatus("Loading");
+  setStatus("加载报告中...", "processing");
   const response = await fetch(`/api/v1/jobs/${jobId}`, { headers: apiHeaders() });
   const payload = await safeJson(response);
   if (!response.ok) {
-    setStatus(payload.detail || "Load failed", true);
+    setStatus(payload.detail || "加载失败", "error");
     return;
   }
   await refreshJobsListSilently();
   renderResult(payload);
-  setStatus("Report loaded");
+  setStatus("报告已加载", "success");
+  
+  // Scroll to results
+  document.querySelector('.results-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function submitText() {
   const text = dom.textInput.value.trim();
   const title = dom.titleInput.value.trim() || null;
   if (!text) {
-    setStatus("请输入待扫描内容", true);
+    setStatus("请输入待扫描内容", "error");
     return;
   }
 
-  setStatus("Submitting");
+  setStatus("深度分析中...", "processing");
   const response = await fetch("/api/v1/scan/text", {
     method: "POST",
     headers: apiHeaders({ "Content-Type": "application/json" }),
@@ -316,29 +309,31 @@ async function submitText() {
   });
   const payload = await safeJson(response);
   if (!response.ok) {
-    setStatus(payload.detail || "提交失败", true);
+    setStatus(payload.detail || "提交失败", "error");
     return;
   }
   activeJobId = payload.job_id;
   renderSubmittedJob(payload, title);
   await refreshJobsListSilently();
-  setStatus("Completed");
+  setStatus("分析完成", "success");
+  
+  document.querySelector('.results-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function submitFile() {
   const file = dom.fileInput.files?.[0];
   const title = dom.titleInput.value.trim() || null;
   if (!file) {
-    setStatus("请选择文件", true);
+    setStatus("请选择文件", "error");
     return;
   }
-  const suffix = `.${file.name.split(".").pop() || ""}`.toLowerCase();
+  const suffix = \`.\${file.name.split(".").pop() || ""}\`.toLowerCase();
   if (!allowedUploads.includes(suffix)) {
-    setStatus(`当前部署仅支持：${allowedUploads.join("、")}`, true);
+    setStatus(\`不支持的文件格式。仅支持：\${allowedUploads.join("、")}\`, "error");
     return;
   }
 
-  setStatus("Uploading");
+  setStatus("文件上传并解析中...", "processing");
   const formData = new FormData();
   formData.append("file", file);
   formData.append("mode", activeMode);
@@ -352,35 +347,54 @@ async function submitFile() {
   });
   const payload = await safeJson(response);
   if (!response.ok) {
-    setStatus(payload.detail || "上传失败", true);
+    setStatus(payload.detail || "上传失败", "error");
     return;
   }
   activeJobId = payload.job_id;
   renderSubmittedJob(payload, title);
   await refreshJobsListSilently();
-  setStatus("Completed");
+  setStatus("分析完成", "success");
+  
+  document.querySelector('.results-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 function fillSample() {
   dom.textInput.value = activeMode === "contract_review" ? contractSample : adSample;
   switchPane("textPane");
-  setStatus("Sample loaded");
+  setStatus("示例已载入", "success");
 }
 
-function setupReveal() {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.18 }
-  );
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dom.fileDropZone.classList.add('drag-over');
+}
 
-  document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dom.fileDropZone.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dom.fileDropZone.classList.remove('drag-over');
+  
+  const files = e.dataTransfer.files;
+  if (files.length) {
+    dom.fileInput.files = files;
+    updateFileDisplay();
+  }
+}
+
+function updateFileDisplay() {
+  const file = dom.fileInput.files?.[0];
+  if (file) {
+    dom.uploadHelpText.textContent = \`已选择: \${file.name} (\${(file.size / 1024).toFixed(1)} KB)\`;
+    dom.uploadHelpText.style.color = 'var(--accent-blue)';
+    dom.uploadHelpText.style.fontWeight = '500';
+  }
 }
 
 function bindEvents() {
@@ -393,24 +407,32 @@ function bindEvents() {
   dom.fillSampleBtn.addEventListener("click", fillSample);
   document.getElementById("clearTextBtn").addEventListener("click", () => {
     dom.textInput.value = "";
-    setStatus("Cleared");
+    setStatus("内容已清空", "success");
   });
   dom.scanTextBtn.addEventListener("click", submitText);
   dom.scanFileBtn.addEventListener("click", submitFile);
   dom.refreshBtn.addEventListener("click", async () => {
-    setStatus("Refreshing");
+    setStatus("刷新状态中...", "processing");
     await fetchJobs();
-    setStatus("Ready");
+    setStatus("系统就绪", "success");
   });
+  
+  // Drag and drop for files
+  if (dom.fileDropZone) {
+    dom.fileDropZone.addEventListener('dragover', handleDragOver);
+    dom.fileDropZone.addEventListener('dragleave', handleDragLeave);
+    dom.fileDropZone.addEventListener('drop', handleDrop);
+    dom.fileInput.addEventListener('change', updateFileDisplay);
+  }
 }
 
 async function bootstrap() {
   updateMode(activeMode);
   bindEvents();
-  setupReveal();
-  setStatus("Ready");
+  setStatus("系统初始化中...", "processing");
   await fetchMeta();
   await fetchJobs();
+  setStatus("系统就绪", "success");
 }
 
 bootstrap();
