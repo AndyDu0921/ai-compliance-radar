@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Compliance Radar | AI合规扫描仪</title>
   <meta name="description" content="企业级广告文案合规扫描与合同条款预审平台。通过结构化风险报告、整改建议提升业务团队合规审查效率。">
+  <meta name="keywords" content="合规扫描, 广告法, 合同预审, AI风控, Compliance Radar">
+  <meta property="og:title" content="Compliance Radar | AI合规扫描仪">
+  <meta property="og:description" content="开箱即用的AI风险审查工作站，分钟级输出高精度风险评级与审查报告。">
+  <meta property="og:type" content="website">
   
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23000'/%3E%3Cpath d='M32 16a16 16 0 1 0 16 16 16.018 16.018 0 0 0-16-16zm0 28a12 12 0 1 1 12-12 12.013 12.013 0 0 1-12 12z' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23111'/%3E%3Cpath d='M32 16a16 16 0 1 0 16 16 16.018 16.018 0 0 0-16-16zm0 28a12 12 0 1 1 12-12 12.013 12.013 0 0 1-12 12z' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%232997ff'/%3E%3C/svg%3E">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,20 +23,22 @@
     <header class="app-header">
       <div class="header-container">
         <a class="brand-logo" href="#hero">
-          <div class="logo-mark"></div>
+          <div class="logo-mark">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          </div>
           <div class="logo-text">
             <strong>Compliance Radar</strong>
-            <span>AI合规扫描仪</span>
+            <span>企业级 AI 合规引擎</span>
           </div>
         </a>
         <nav class="desktop-nav">
           <a href="#workspace" class="nav-item">开始扫描</a>
-          <a href="#capabilities" class="nav-item">适用场景</a>
-          <a href="#developer" class="nav-item">API接入</a>
+          <a href="#capabilities" class="nav-item">核心能力</a>
+          <a href="#developer" class="nav-item">API 接入</a>
         </nav>
         <div class="header-actions">
           <a href="/docs" target="_blank" class="button-secondary">开发文档</a>
-          <a href="#workspace" class="button-primary">立即使用</a>
+          <a href="#workspace" class="button-primary">立即体验</a>
         </div>
       </div>
     </header>
@@ -40,25 +46,27 @@
     <main class="app-main">
       <section id="hero" class="hero-section">
         <div class="hero-content fade-in-up">
-          <div class="hero-badge">智能合规筛查系统</div>
+          <div class="hero-badge">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-blue); box-shadow:0 0 8px var(--accent-blue);"></span>
+            AI 驱动的下一代智能风控
+          </div>
           <h1 class="hero-title">业务前沿的<br/>合规防御阵地。</h1>
           <p class="hero-description">
-            无需繁琐配置，团队开箱即用的风险审查工作站。
-            分钟级输出高精度的广告文案风险评级与合同条款审查报告。
+            告别人工审核的繁琐与疏漏。我们提供开箱即用的风险审查工作站，分钟级输出高精度的广告文案风险评级与合同条款深度审查报告。
           </p>
           <div class="hero-cta">
-            <button class="button-primary large" onclick="document.getElementById('workspace').scrollIntoView({behavior: 'smooth'})">开启合规扫描</button>
+            <button class="button-primary large" onclick="document.getElementById('workspace').scrollIntoView({behavior: 'smooth'})">开启智能扫描</button>
             <a href="/docs" target="_blank" class="button-secondary large">查阅 API 文档</a>
           </div>
         </div>
         
         <div class="hero-visual fade-in-up delay-1">
-          <div class="glass-card scanner-preview">
+          <div class="scanner-preview">
             <div class="scanner-header">
               <div class="window-controls">
                 <span></span><span></span><span></span>
               </div>
-              <div class="scanner-title">Risk Assessment Report</div>
+              <div class="scanner-title">Live Risk Assessment Engine</div>
             </div>
             <div class="scanner-body">
               <div class="scanner-line scanning"></div>
@@ -67,10 +75,11 @@
                 <div class="mock-line short"></div>
                 <div class="mock-line highlight"></div>
                 <div class="mock-line"></div>
+                <div class="mock-line" style="width: 40%; margin-top: 24px;"></div>
               </div>
               <div class="mock-results">
-                <div class="mock-badge critical">Critical Risk</div>
-                <div class="mock-badge review">Manual Review</div>
+                <div class="mock-badge critical">Critical Risk Detected</div>
+                <div class="mock-badge review">Manual Review Suggested</div>
               </div>
             </div>
           </div>
@@ -80,29 +89,29 @@
       <section id="capabilities" class="features-section fade-in-up delay-2">
         <div class="section-header">
           <h2 class="section-title">精准，高效，专业</h2>
-          <p class="section-subtitle">专为现代企业风控流程打造的核心特性。</p>
+          <p class="section-subtitle">结合大语言模型深度理解能力与百万级实时更新的合规规则库，专为现代企业复杂的风控流程打造。</p>
         </div>
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
-            <h3>广告法违禁词过滤</h3>
-            <p>基于最新法规库，精确识别绝对化承诺、夸大宣传、敏感用语等高风险文案，防范于未然。</p>
+            <h3>广告法违禁词毫秒级过滤</h3>
+            <p>基于最新广告法规与监管动态，精确识别绝对化承诺、夸大宣传、敏感用语等高风险文案，将公关危机防范于未然。</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z"></path></svg>
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             </div>
-            <h3>合同条款预审</h3>
-            <p>智能提取单方免责、管辖权争议等不平等条款，给出专业建议，辅助法务人员快速决策。</p>
+            <h3>复杂合同条款 AI 预审</h3>
+            <p>智能提取单方免责、管辖权争议、违约金畸高等不平等条款，并给出法务级专业建议，大幅提升审批流转速度。</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
-            <h3>API 深度集成</h3>
-            <p>提供标准化 REST API，轻松接入现有的审批流、OA 系统或 CRM 工作台，实现自动化风控。</p>
+            <h3>现代化 API 深度集成</h3>
+            <p>提供极具弹性的标准化 REST API 与 Webhooks，轻松无缝接入现有的企业微信、飞书审批流、OA 系统或自研 CRM 工作台。</p>
           </div>
         </div>
       </section>
@@ -110,8 +119,8 @@
       <section id="workspace" class="workspace-section fade-in-up">
         <div class="workspace-container">
           <div class="workspace-sidebar">
-            <div class="sidebar-block">
-              <h4 class="sidebar-heading">引擎状态</h4>
+            <div class="sidebar-block glass-panel" style="padding: 24px; box-shadow: none;">
+              <h4 class="sidebar-heading">核心引擎状态</h4>
               <div class="status-indicator">
                 <span id="statusBadge" class="status-dot"></span>
                 <span id="statusText">系统就绪</span>
@@ -119,14 +128,14 @@
             </div>
             
             <div class="sidebar-block">
-              <h4 class="sidebar-heading">活动任务</h4>
+              <h4 class="sidebar-heading">近期扫描任务</h4>
               <div id="recentJobs" class="recent-jobs-list">
                 <div class="empty-state-small">载入中...</div>
               </div>
             </div>
 
             <div class="sidebar-block">
-              <h4 class="sidebar-heading">系统配置</h4>
+              <h4 class="sidebar-heading">环境运行配置</h4>
               <div id="metaStrip" class="meta-info">
                 读取中...
               </div>
@@ -136,7 +145,7 @@
           <div class="workspace-main">
             <form class="scan-form glass-panel" onsubmit="return false;">
               <div class="form-header">
-                <h3>新建任务</h3>
+                <h3>新建审查任务</h3>
               </div>
 
               <div class="segmented-control mode-switch">
@@ -146,34 +155,34 @@
 
               <div class="form-row two-cols">
                 <div class="form-group">
-                  <label for="titleInput">任务标题 (可选)</label>
-                  <input id="titleInput" type="text" placeholder="例如：双十一预热海报文案">
+                  <label for="titleInput">任务标题标识 (可选)</label>
+                  <input id="titleInput" type="text" placeholder="例如：2026 双十一大促预热海报文案">
                 </div>
                 <div class="form-group">
                   <label for="apiKeyInput">API Key (可选)</label>
-                  <input id="apiKeyInput" type="password" autocomplete="off" placeholder="访问受限资源时填写">
+                  <input id="apiKeyInput" type="password" autocomplete="off" placeholder="输入密钥以访问私有模型资源">
                 </div>
               </div>
 
               <div class="input-method-switch">
-                <button class="tab-btn active" data-pane="textPane" type="button">粘贴文本</button>
-                <button class="tab-btn" data-pane="filePane" type="button">上传文件</button>
+                <button class="tab-btn active" data-pane="textPane" type="button">文本粘贴录入</button>
+                <button class="tab-btn" data-pane="filePane" type="button">文档文件上传</button>
               </div>
 
               <div id="textPane" class="input-pane active">
-                <textarea id="textInput" class="modern-textarea" placeholder="在此粘贴需要检查的文本内容..."></textarea>
+                <textarea id="textInput" class="modern-textarea" placeholder="在此粘贴需要检查的文本内容... 支持 Markdown 格式"></textarea>
                 <div class="pane-actions">
                   <div class="left-actions">
-                    <button id="fillSampleBtn" class="text-btn" type="button">加载示例文本</button>
-                    <button id="clearTextBtn" class="text-btn danger" type="button">清空</button>
+                    <button id="fillSampleBtn" class="text-btn" type="button">加载违规示例文本</button>
+                    <button id="clearTextBtn" class="text-btn danger" type="button">一键清空</button>
                   </div>
                   <div class="right-actions">
                     <label class="toggle-switch">
-                      <input id="useLlmText" type="checkbox">
+                      <input id="useLlmText" type="checkbox" checked>
                       <span class="slider"></span>
-                      <span class="toggle-label">深度 AI 增强</span>
+                      <span class="toggle-label">启用深度 AI 语义增强</span>
                     </label>
-                    <button id="scanTextBtn" class="button-primary" type="button">开始扫描</button>
+                    <button id="scanTextBtn" class="button-primary" type="button">开始深度扫描</button>
                   </div>
                 </div>
               </div>
@@ -183,19 +192,19 @@
                   <input id="fileInput" type="file" accept=".txt,.md" class="hidden-file-input">
                   <div class="upload-content">
                     <svg class="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                    <p class="upload-text">点击或拖拽文件到此处</p>
-                    <p id="uploadHelpText" class="upload-hint">支持 .txt 和 .md 格式</p>
+                    <p class="upload-text">点击或将文件拖拽至此处</p>
+                    <p id="uploadHelpText" class="upload-hint">支持 .txt 和 .md 格式，最高 10MB</p>
                   </div>
                 </div>
                 <div class="pane-actions">
                   <div class="left-actions"></div>
                   <div class="right-actions">
                     <label class="toggle-switch">
-                      <input id="useLlmFile" type="checkbox">
+                      <input id="useLlmFile" type="checkbox" checked>
                       <span class="slider"></span>
-                      <span class="toggle-label">深度 AI 增强</span>
+                      <span class="toggle-label">启用深度 AI 语义增强</span>
                     </label>
-                    <button id="scanFileBtn" class="button-primary" type="button">上传并扫描</button>
+                    <button id="scanFileBtn" class="button-primary" type="button">上传并解析扫描</button>
                   </div>
                 </div>
               </div>
@@ -207,18 +216,18 @@
       <section class="results-section fade-in-up">
         <div class="section-header flex-between">
           <div>
-            <h2 class="section-title">分析报告</h2>
-            <p class="section-subtitle">结构化风险展现，便于人工决策复核。</p>
+            <h2 class="section-title">合规分析报告</h2>
+            <p class="section-subtitle" style="margin: 0;">结构化高风险展现，辅助人工进行最终法务复核。</p>
           </div>
-          <button id="refreshBtn" class="button-secondary small" type="button">刷新状态</button>
+          <button id="refreshBtn" class="button-secondary small" type="button">刷新任务状态</button>
         </div>
 
         <div id="emptyState" class="report-empty glass-panel">
           <div class="empty-icon">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
           </div>
-          <h3>暂无报告</h3>
-          <p>提交扫描任务后，系统将在此处生成详细的风险分析报告。</p>
+          <h3>暂无可用报告</h3>
+          <p>提交新的扫描任务后，系统将在此处实时生成详细的风险分析与评级报告。</p>
         </div>
 
         <div id="resultPane" class="report-content hidden">
@@ -229,22 +238,29 @@
       <section id="developer" class="developer-section fade-in-up">
         <div class="dev-card glass-panel">
           <div class="dev-content">
-            <h2>为开发者构建</h2>
-            <p>Compliance Radar 提供了完整的 REST API 支持，允许开发者将其无缝集成到内部审核流、ERP、审批平台或现有的 Agent 工作流中。</p>
+            <h2>为现代化研发团队构建</h2>
+            <p>Compliance Radar 提供了完整的 RESTful API 支持，允许开发者将其作为微服务无缝集成到内部审核工作流、ERP 平台或自研的 Agent 智能体生态中。</p>
             <div class="dev-links">
-              <a href="/docs" target="_blank" class="button-primary">阅读 API 文档</a>
-              <a href="/health" target="_blank" class="button-secondary">系统健康状态</a>
+              <a href="/docs" target="_blank" class="button-primary">阅读 API 接入文档</a>
+              <a href="/health" target="_blank" class="button-secondary">系统探针状态</a>
             </div>
           </div>
           <div class="dev-code">
             <pre><code><span class="keyword">const</span> <span class="variable">response</span> = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'/api/v1/scan/text'</span>, {
   <span class="property">method</span>: <span class="string">'POST'</span>,
-  <span class="property">headers</span>: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+  <span class="property">headers</span>: { 
+    <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>,
+    <span class="string">'Authorization'</span>: <span class="string">'Bearer CR_API_KEY'</span>
+  },
   <span class="property">body</span>: <span class="built_in">JSON</span>.<span class="function">stringify</span>({
     <span class="property">mode</span>: <span class="string">'ad_copy'</span>,
-    <span class="property">text</span>: <span class="string">'全网第一的瘦身方案！'</span>
+    <span class="property">use_llm</span>: <span class="keyword">true</span>,
+    <span class="property">text</span>: <span class="string">'全网第一的独家瘦身方案！'</span>
   })
-});</code></pre>
+});
+
+<span class="keyword">const</span> <span class="variable">report</span> = <span class="keyword">await</span> <span class="variable">response</span>.<span class="function">json</span>();
+<span class="built_in">console</span>.<span class="function">log</span>(<span class="variable">report</span>.<span class="property">risk_score</span>); <span class="comment">// 95 (Critical)</span></code></pre>
           </div>
         </div>
       </section>
@@ -253,20 +269,21 @@
     <footer class="app-footer">
       <div class="footer-content">
         <div class="footer-logo">
-          <strong>Compliance Radar</strong>
+          <strong>Compliance Radar Platform</strong>
         </div>
         <div class="footer-links">
-          <a href="/docs">API 文档</a>
-          <a href="#">隐私政策</a>
-          <a href="#">服务条款</a>
+          <a href="/docs">API 开发者文档</a>
+          <a href="#">数据隐私保护政策</a>
+          <a href="#">SaaS 服务条款</a>
         </div>
         <div class="footer-copyright">
-          &copy; 2026 Compliance Radar. All rights reserved.
+          &copy; 2026 Compliance Radar Platform. Engineered for excellence. All rights reserved.
         </div>
       </div>
     </footer>
   </div>
 
-  <script src="/app.js" defer></script>
+  <div id="toastContainer" class="toast-container"></div>
+  <script type="module" src="/js/main.js"></script>
 </body>
 </html>
