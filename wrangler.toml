@@ -18,5 +18,9 @@ migrations_dir = "migrations"
 
 [vars]
 APP_NAME = "Compliance Radar"
+APP_VERSION = "0.2.0"
+APP_DEPLOYED_AT = ""
 MAX_UPLOAD_MB = "10"
 DEFAULT_USE_LLM = "false"
+STORE_RAW_INPUT = "false"
+JOB_RETENTION_DAYS = "7"

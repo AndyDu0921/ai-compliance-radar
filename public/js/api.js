@@ -25,6 +25,7 @@ export class ApiClient {
   static async fetchJobs(apiKey = "") {
     const res = await fetch("/api/v1/jobs", { headers: this.getHeaders(apiKey) });
     if (!res.ok) {
+      if (res.status === 404) throw new Error("当前部署未开放历史任务访问");
       if (res.status === 401) throw new Error("需输入 API Key 以查看历史记录");
       throw new Error("历史记录读取失败");
     }
