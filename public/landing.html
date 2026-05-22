@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文案扫雷 — 3秒查出广告法违禁词</title>
+  <meta name="description" content="文案扫雷是一款广告文案合规检测工具，3秒识别极限词、虚假承诺、医疗暗示等违禁内容，免费使用。">
+  <meta property="og:title" content="文案扫雷 — 你的广告文案有雷吗？">
+  <meta property="og:description" content="3秒扫描，秒出报告。告别罚款焦虑。">
+  <meta property="og:type" content="website">
+
+  <style>
+    :root {
+      --bg: #08080a;
+      --surface: #111116;
+      --surface2: #1a1a22;
+      --text: #f0f0f3;
+      --text2: #9a9aa6;
+      --text3: #5e5e6e;
+      --accent: #f74a4a;
+      --accent2: #ff6b35;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --border: rgba(255,255,255,0.06);
+      --radius: 14px;
+      --radius-lg: 20px;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(247,74,74,0.08), transparent 50%),
+                  radial-gradient(ellipse 60% 40% at 80% 60%, rgba(59,130,246,0.05), transparent 50%),
+                  var(--bg);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Header ─── */
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8,8,10,0.75); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 900px; margin: 0 auto; padding: 0 24px;
+      height: 60px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: var(--text);
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .header-cta {
+      background: var(--accent); color: #fff; border: none;
+      padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: transform 0.2s;
+    }
+    .header-cta:hover { transform: scale(1.04); }
+
+    /* ─── Hero ─── */
+    .hero { padding: 80px 0 60px; text-align: center; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 20px;
+      background: rgba(247,74,74,0.1); border: 1px solid rgba(247,74,74,0.2);
+      color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 28px;
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 68px); font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 16px;
+    }
+    .hero h1 .brand { color: var(--accent); }
+    .hero-sub {
+      font-size: 20px; color: var(--text2); margin-bottom: 40px; font-weight: 400;
+    }
+    .hero-cta-group { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none;
+      padding: 16px 36px; border-radius: 30px; font-size: 17px; font-weight: 700;
+      cursor: pointer; text-decoration: none; transition: all 0.25s;
+      box-shadow: 0 8px 28px rgba(247,74,74,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(247,74,74,0.4); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border); padding: 16px 36px; border-radius: 30px;
+      font-size: 17px; font-weight: 600; cursor: pointer; text-decoration: none;
+      transition: all 0.25s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+    /* ─── Stats Bar ─── */
+    .stats-bar {
+      display: flex; justify-content: center; gap: 48px;
+      padding: 36px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      margin: 0 auto 60px; max-width: 700px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 32px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 14px; color: var(--text2); margin-top: 6px; }
+
+    /* ─── Demo ─── */
+    .demo-section { padding: 0 0 80px; }
+    .section-title {
+      font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+      text-align: center; margin-bottom: 8px;
+    }
+    .section-sub { text-align: center; color: var(--text2); margin-bottom: 36px; font-size: 16px; }
+
+    .demo-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 28px;
+    }
+    .demo-textarea {
+      width: 100%; min-height: 140px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-size: 15px; font-family: var(--font);
+      padding: 16px; resize: vertical; outline: none; transition: border-color 0.2s;
+    }
+    .demo-textarea:focus { border-color: var(--accent); }
+    .demo-textarea::placeholder { color: var(--text3); }
+
+    .demo-hints {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 18px;
+    }
+    .hint-tag {
+      padding: 5px 12px; border-radius: 16px; font-size: 13px;
+      background: var(--surface2); color: var(--text2); border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .hint-tag:hover { border-color: var(--accent); color: var(--accent); }
+
+    .demo-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .demo-bar .btn-primary { padding: 12px 28px; font-size: 15px; }
+    .demo-status { font-size: 14px; color: var(--text2); }
+
+    /* ─── Result ─── */
+    .result-card {
+      margin-top: 20px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px; display: none;
+    }
+    .result-card.visible { display: block; }
+
+    .result-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .risk-score {
+      font-size: 48px; font-weight: 800; line-height: 1;
+    }
+    .risk-label { font-size: 14px; color: var(--text2); }
+
+    .result-findings { margin-top: 20px; }
+    .finding-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px; border-radius: var(--radius); margin-bottom: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+    }
+    .finding-sev {
+      padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;
+      white-space: nowrap; text-transform: uppercase;
+    }
+    .sev-critical { background: rgba(247,74,74,0.15); color: var(--accent); }
+    .sev-high { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .sev-medium { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .sev-low { background: rgba(34,197,94,0.15); color: var(--green); }
+
+    .finding-body { flex: 1; }
+    .finding-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .finding-excerpt { font-size: 14px; color: var(--accent); background: rgba(247,74,74,0.06); padding: 4px 8px; border-radius: 6px; margin: 6px 0; display: inline-block; }
+    .finding-explanation { font-size: 13px; color: var(--text2); margin-top: 4px; }
+    .finding-suggestion { font-size: 13px; color: var(--green); margin-top: 4px; }
+
+    /* ─── Features ─── */
+    .features { padding: 0 0 80px; }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px; margin-top: 36px;
+    }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px;
+    }
+    .feature-icon { font-size: 32px; margin-bottom: 14px; }
+    .feature-card h3 { font-size: 17px; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+    /* ─── CTA / WeChat ─── */
+    .cta-section {
+      padding: 60px 0; text-align: center;
+      background: linear-gradient(180deg, transparent, rgba(247,74,74,0.04), transparent);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .cta-section h2 { font-size: 30px; margin-bottom: 12px; }
+    .cta-section p { color: var(--text2); font-size: 16px; margin-bottom: 32px; }
+
+    .qr-box {
+      display: inline-block; background: #fff; padding: 16px; border-radius: 16px;
+      margin-bottom: 16px;
+    }
+    .qr-placeholder {
+      width: 180px; height: 180px; background: #f5f5f5;
+      display: flex; align-items: center; justify-content: center;
+      color: #999; font-size: 13px; border-radius: 8px;
+    }
+    .qr-hint { font-size: 14px; color: var(--text2); margin-top: 8px; }
+
+    .urgency-text {
+      margin-top: 20px; font-size: 14px; color: var(--accent); font-weight: 600;
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center; padding: 40px 0;
+      font-size: 13px; color: var(--text3);
+    }
+    .footer a { color: var(--text2); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 600;
+      z-index: 1000; animation: fadeInUp 0.3s ease;
+    }
+    .toast-error { background: var(--accent); color: #fff; }
+    .toast-success { background: var(--green); color: #fff; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      .hero { padding: 50px 0 40px; }
+      .stats-bar { gap: 24px; }
+      .stat-num { font-size: 24px; }
+      .demo-bar { flex-direction: column; align-items: stretch; }
+      .demo-bar .btn-primary { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-icon">💣</span>
+        文案扫雷
+      </a>
+      <a href="#demo" class="header-cta">免费试用</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero container">
+    <div class="hero-badge">
+      <span class="dot"></span> 你的广告文案，可能埋着雷
+    </div>
+    <h1>
+      文案<span class="brand">扫雷</span>
+    </h1>
+    <p class="hero-sub">粘贴文案，3秒出报告。告别广告法罚款焦虑。</p>
+    <div class="hero-cta-group">
+      <a href="#demo" class="btn-primary">立即免费扫描 →</a>
+      <a href="#how" class="btn-ghost">怎么做到的？</a>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-bar container">
+    <div class="stat-item">
+      <div class="stat-num" id="statFines">4.26亿</div>
+      <div class="stat-label">2024年全国广告违法罚没金额</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">3秒</div>
+      <div class="stat-label">出合规报告</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">50+</div>
+      <div class="stat-label">条合规检测规则</div>
+    </div>
+  </div>
+
+  <!-- Live Demo -->
+  <section id="demo" class="demo-section container">
+    <h2 class="section-title">亲自试试</h2>
+    <p class="section-sub">粘贴你的广告文案，看看有没有"雷"</p>
+
+    <div class="demo-card">
+      <textarea id="scanText" class="demo-textarea" placeholder="粘贴你需要检测的广告文案、详情页描述、直播话术...&#10;&#10;例：全网第一的瘦身方案，7天立刻见效！博士团队背书，保证通过。最后一天，错过再等一年！"></textarea>
+
+      <div class="demo-hints">
+        <span class="hint-tag" onclick="fillSample('extreme')">极限词示例</span>
+        <span class="hint-tag" onclick="fillSample('medical')">医疗暗示示例</span>
+        <span class="hint-tag" onclick="fillSample('finance')">金融承诺示例</span>
+        <span class="hint-tag" onclick="fillSample('edu')">教育培训示例</span>
+      </div>
+
+      <div class="demo-bar">
+        <button id="scanBtn" class="btn-primary" onclick="doScan()">⚡ 开始扫雷</button>
+        <span class="demo-status" id="scanStatus"></span>
+      </div>
+
+      <div class="result-card" id="resultCard">
+        <div class="result-header">
+          <div>
+            <div class="risk-score" id="riskScore">--</div>
+            <div class="risk-label">风险评分（100=最高风险）</div>
+          </div>
+          <div id="resultSummary" style="color: var(--text2); font-size: 14px; max-width: 400px;"></div>
+        </div>
+        <div class="result-findings" id="findingsList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section id="how" class="features container">
+    <h2 class="section-title">3秒，做什么？</h2>
+    <p class="section-sub">比人工快 100 倍，比凭感觉靠谱</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>正则 + AI 双引擎</h3>
+        <p>50+ 条规则库毫秒级命中极限词、虚假承诺。可选 AI 增强，深挖隐性风险。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>风控级报告</h3>
+        <p>风险评分 + 违规项明细 + 修改建议，一目了然。可直接截图发给老板或客户。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>微信里就能用</h3>
+        <p>小程序版本正在开发中。抢先入群，内测名额有限。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>法规持续更新</h3>
+        <p>广告法、电商法、消保法。规则库跟随监管动态实时更新，不掉队。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>免费体验，限前 100 名</h2>
+      <p>扫码进群，抢先获取小程序内测资格 + 永久免费额度</p>
+
+      <div class="qr-box" id="qrBox">
+        <div class="qr-placeholder">
+          <span>📷<br>微信扫码<br>（替换为实际群二维码）</span>
+        </div>
+      </div>
+      <p class="qr-hint">截图 → 微信扫一扫 → 进群</p>
+      <p class="urgency-text">⚠️ 前 100 名进群送永久免费额度，名额实时递减</p>
+    </div>
+  </section>
+
+  <footer class="footer container">
+    <p>© 2026 文案扫雷 · 本工具提供合规风险初筛，不构成正式法律意见</p>
+  </footer>
+
+  <script>
+    const API_BASE = 'https://radar.dssxhydwp.shop';
+
+    const samples = {
+      extreme: '全网第一的瘦身方案，7天立刻见效！\n博士团队背书，保证通过体脂管理挑战。\n今天不买就没了，最后一天，错过再等一年！',
+      medical: '修复视力，改善近视，治疗效果显著！\nAI医生推荐，采用医学验证技术。\n根治脱发，无效全额退款。',
+      finance: '年化收益15%，稳赚不赔！\n低风险高回报，保本保收益。\n国家认证推荐，官方唯一推荐理财方案。',
+      edu: '包录取签约保分，提分保证！\n保过保上岸，不通过立即退款。\n最后3个名额，马上恢复原价。'
+    };
+
+    function fillSample(key) {
+      document.getElementById('scanText').value = samples[key] || '';
+      document.getElementById('scanText').focus();
+      showToast('示例已填入，点击"开始扫雷"试试', 'success');
+    }
+
+    async function doScan() {
+      const text = document.getElementById('scanText').value.trim();
+      const statusEl = document.getElementById('scanStatus');
+      const btn = document.getElementById('scanBtn');
+      const resultCard = document.getElementById('resultCard');
+
+      if (!text) {
+        showToast('请先粘贴需要检测的文案', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '扫描中...';
+      statusEl.textContent = '';
+
+      try {
+        const resp = await fetch(`${API_BASE}/api/v1/scan/text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'ad_copy', text, use_llm: false })
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || '扫描失败');
+
+        const report = data.result;
+        renderResult(report);
+        resultCard.classList.add('visible');
+        statusEl.textContent = `扫描完成 · 命中 ${report.deterministic_hit_count} 项`;
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (err) {
+        statusEl.textContent = '';
+        showToast(err.message || '扫描失败，请重试', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ 开始扫雷';
+      }
+    }
+
+    function renderResult(report) {
+      // Score
+      const scoreEl = document.getElementById('riskScore');
+      const score = report.risk_score;
+      scoreEl.textContent = score;
+      if (score >= 80) scoreEl.style.color = 'var(--accent)';
+      else if (score >= 50) scoreEl.style.color = 'var(--yellow)';
+      else if (score >= 25) scoreEl.style.color = 'var(--blue)';
+      else scoreEl.style.color = 'var(--green)';
+
+      // Summary
+      document.getElementById('resultSummary').textContent = report.summary;
+
+      // Findings
+      const findingsList = document.getElementById('findingsList');
+      if (!report.risk_items || report.risk_items.length === 0) {
+        findingsList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--green);">✅ 未发现明显违规项。但机器审校不替代人工终审。</div>';
+        return;
+      }
+
+      findingsList.innerHTML = report.risk_items.map(item => {
+        const sevClass = 'sev-' + (item.severity === 'critical' ? 'critical' : item.severity === 'high' ? 'high' : item.severity === 'medium' ? 'medium' : 'low');
+        return `
+          <div class="finding-item">
+            <span class="finding-sev ${sevClass}">${item.severity}</span>
+            <div class="finding-body">
+              <div class="finding-title">${esc(item.title)}</div>
+              ${item.excerpt ? `<div class="finding-excerpt">...${esc(item.excerpt)}...</div>` : ''}
+              <div class="finding-explanation">${esc(item.explanation || '')}</div>
+              ${item.suggestion ? `<div class="finding-suggestion">💡 ${esc(item.suggestion)}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function esc(s) {
+      const div = document.createElement('div');
+      div.textContent = s || '';
+      return div.innerHTML;
+    }
+
+    function showToast(msg, type) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        doScan();
+      }
+    });
+  </script>
+</body>
+</html>
