@@ -1,19 +1,17 @@
 import { sampleTexts } from "./utils.js";
 import { ApiClient } from "./api.js";
 import { UIManager } from "./ui.js";
+import { TurnstileManager } from "./turnstile.js";
 
 class App {
   constructor() {
     this.ui = new UIManager();
+    this.turnstile = new TurnstileManager();
     this.activeMode = "ad_copy";
     this.activeJobId = null;
     this.allowedUploads = [".txt", ".md"];
     this.selectedFile = null;
     this.jobsEnabled = false;
-    this.turnstileEnabled = false;
-    this.turnstileSiteKey = null;
-    this.turnstileTokens = { text: null, file: null };
-    this.turnstileWidgetIds = { text: null, file: null };
   }
 
   async init() {
@@ -25,15 +23,19 @@ class App {
       const meta = await ApiClient.fetchMeta();
       this.allowedUploads = Array.isArray(meta.allowed_uploads) ? meta.allowed_uploads : this.allowedUploads;
       this.jobsEnabled = Boolean(meta.admin_features?.jobs);
-      this.turnstileEnabled = Boolean(meta.turnstile_enabled && meta.turnstile_site_key);
-      this.turnstileSiteKey = meta.turnstile_site_key || null;
 
       this.ui.renderMeta(meta);
       this.ui.toggleJobsUi(this.jobsEnabled);
       this.ui.renderVersion(meta.version, meta.deployed_at);
 
-      if (this.turnstileEnabled && this.turnstileSiteKey) {
-        await this.setupTurnstile();
+      this.turnstile.configure(meta.turnstile_enabled, meta.turnstile_site_key);
+      this.ui.toggleTurnstile(this.turnstile.isRequired());
+
+      if (this.turnstile.isRequired()) {
+        await this.turnstile.setup({
+          text: this.ui.dom.turnstileText,
+          file: this.ui.dom.turnstileFile
+        });
       }
 
       if (this.jobsEnabled) {
@@ -162,7 +164,7 @@ class App {
       return;
     }
 
-    if (this.turnstileEnabled && !this.turnstileTokens.text) {
+    if (this.turnstile.isRequired() && !this.turnstile.getToken("text")) {
       this.ui.showToast("请先完成文本扫描的人机验证", "error");
       return;
     }
@@ -175,7 +177,7 @@ class App {
           text,
           title,
           use_llm: this.ui.dom.useLlmText.checked,
-          turnstile_token: this.turnstileTokens.text
+          turnstile_token: this.turnstile.getToken("text")
         },
         this.getAdminApiKey()
       );
@@ -185,7 +187,7 @@ class App {
       this.ui.setStatus("分析完成", "success");
       this.ui.showToast("报告生成完毕", "success");
       document.querySelector(".results-section").scrollIntoView({ behavior: "smooth" });
-      this.resetTurnstile("text");
+      this.turnstile.reset("text");
 
       if (this.jobsEnabled && this.getAdminApiKey()) {
         await this.refreshJobs(true);
@@ -193,7 +195,7 @@ class App {
     } catch (error) {
       this.ui.setStatus("提交失败", "error");
       this.ui.showToast(error.message, "error");
-      this.resetTurnstile("text");
+      this.turnstile.reset("text");
     }
   }
 
@@ -212,7 +214,7 @@ class App {
       return;
     }
 
-    if (this.turnstileEnabled && !this.turnstileTokens.file) {
+    if (this.turnstile.isRequired() && !this.turnstile.getToken("file")) {
       this.ui.showToast("请先完成文件扫描的人机验证", "error");
       return;
     }
@@ -223,8 +225,8 @@ class App {
     formData.append("mode", this.activeMode);
     formData.append("title", title || "");
     formData.append("use_llm", String(this.ui.dom.useLlmFile.checked));
-    if (this.turnstileTokens.file) {
-      formData.append("turnstile_token", this.turnstileTokens.file);
+    if (this.turnstile.getToken("file")) {
+      formData.append("turnstile_token", this.turnstile.getToken("file"));
     }
 
     try {
@@ -235,7 +237,7 @@ class App {
       this.ui.showToast("报告生成完毕", "success");
       document.querySelector(".results-section").scrollIntoView({ behavior: "smooth" });
       this.handleSelectedFile(null);
-      this.resetTurnstile("file");
+      this.turnstile.reset("file");
 
       if (this.jobsEnabled && this.getAdminApiKey()) {
         await this.refreshJobs(true);
@@ -243,7 +245,7 @@ class App {
     } catch (error) {
       this.ui.setStatus("上传失败", "error");
       this.ui.showToast(error.message, "error");
-      this.resetTurnstile("file");
+      this.turnstile.reset("file");
     }
   }
 
@@ -251,61 +253,6 @@ class App {
     this.selectedFile = file;
     this.ui.renderSelectedFile(file);
   }
-
-  async setupTurnstile() {
-    this.ui.toggleTurnstile(true);
-    await ensureTurnstileScript();
-    this.mountTurnstileWidget("text", this.ui.dom.turnstileText);
-    this.mountTurnstileWidget("file", this.ui.dom.turnstileFile);
-  }
-
-  mountTurnstileWidget(kind, container) {
-    if (!container || !window.turnstile || this.turnstileWidgetIds[kind] !== null) {
-      return;
-    }
-
-    this.turnstileWidgetIds[kind] = window.turnstile.render(container, {
-      sitekey: this.turnstileSiteKey,
-      theme: "dark",
-      callback: (token) => {
-        this.turnstileTokens[kind] = token;
-      },
-      "expired-callback": () => {
-        this.turnstileTokens[kind] = null;
-      },
-      "error-callback": () => {
-        this.turnstileTokens[kind] = null;
-      }
-    });
-  }
-
-  resetTurnstile(kind) {
-    this.turnstileTokens[kind] = null;
-    if (window.turnstile && this.turnstileWidgetIds[kind] !== null) {
-      window.turnstile.reset(this.turnstileWidgetIds[kind]);
-    }
-  }
-}
-
-function ensureTurnstileScript() {
-  if (window.turnstile) {
-    return Promise.resolve();
-  }
-  if (window.__turnstileLoader) {
-    return window.__turnstileLoader;
-  }
-
-  window.__turnstileLoader = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Turnstile 脚本加载失败"));
-    document.head.appendChild(script);
-  });
-
-  return window.__turnstileLoader;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

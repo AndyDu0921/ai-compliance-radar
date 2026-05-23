@@ -1,12 +1,6 @@
 import type { RiskItem } from "./rule-engine";
 import type { ScanMode, Severity } from "./rules";
-
-export interface LlmEnv {
-  LLM_API_KEY?: string;
-  LLM_BASE_URL?: string;
-  LLM_MODEL?: string;
-  LLM_TIMEOUT_SECONDS?: string;
-}
+import type { LlmEnv } from "./types";
 
 interface LlmRiskPayload {
   title?: unknown;
@@ -53,34 +47,52 @@ export async function analyzeWithLlm({
   }
 
   const endpoint = `${env.LLM_BASE_URL!.replace(/\/+$/, "")}/chat/completions`;
-  const timeoutMs = Math.max(5, Number(env.LLM_TIMEOUT_SECONDS || 60)) * 1000;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.LLM_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: env.LLM_MODEL,
-      temperature: 0.1,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a careful compliance analyst. Respond with valid JSON only. Do not use markdown fences. Never claim legal certainty."
-        },
-        {
-          role: "user",
-          content: buildPrompt({ mode, text, deterministicHits })
-        }
-      ]
-    }),
-    signal: AbortSignal.timeout(timeoutMs)
-  });
+  // Workers free plan gets 10s CPU; paid gets 30s. Keep LLM timeout comfortably under.
+  const timeoutSeconds = Math.max(5, Math.min(Number(env.LLM_TIMEOUT_SECONDS || 25), 25));
+  const timeoutMs = timeoutSeconds * 1000;
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.LLM_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: env.LLM_MODEL,
+        temperature: 0.1,
+        max_tokens: 2048,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a careful compliance analyst. Respond with valid JSON only. Do not use markdown fences. Never claim legal certainty."
+          },
+          {
+            role: "user",
+            content: buildPrompt({ mode, text, deterministicHits })
+          }
+        ]
+      }),
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      throw new Error(`LLM request timed out after ${timeoutSeconds}s`);
+    }
+    throw new Error(
+      `LLM request failed: ${error instanceof Error ? error.message : "network error"}`
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(`LLM request failed with status ${response.status}`);
+    const body = await response.text().catch(() => "");
+    throw new Error(
+      `LLM request failed with status ${response.status}${body ? `: ${body.slice(0, 200)}` : ""}`
+    );
   }
+
   const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
@@ -91,7 +103,7 @@ export async function analyzeWithLlm({
   return {
     llmItems: normalizeLlmRisks(payload),
     llmUsed: true,
-    riskScoreAdjustment: normalizeNumber(payload.risk_score_adjustment, 0, 0, 20),
+    riskScoreAdjustment: normalizeNumber(payload.risk_score_adjustment, 0, -10, 20),
     llmSummary: typeof payload.summary === "string" ? payload.summary : undefined,
     rewriteSuggestions: normalizeStringArray(payload.rewrite_suggestions, 3),
     humanReview: normalizeStringArray(payload.needs_human_review, 3)
@@ -119,7 +131,7 @@ function buildPrompt({
 Task:
 Review the following content and return a strict JSON object with these keys:
 - summary: string
-- risk_score_adjustment: integer between 0 and 20
+- risk_score_adjustment: integer between -10 and 20
 - risks: array of objects with keys title, severity, category, excerpt, explanation, suggestion, confidence
 - rewrite_suggestions: array of short strings
 - needs_human_review: array of short strings

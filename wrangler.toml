@@ -16,9 +16,12 @@ database_name = "ai_compliance_radar_db"
 database_id = "5adb995f-401c-4a85-9f06-19ff2cc69f07"
 migrations_dir = "migrations"
 
+[triggers]
+crons = ["3 4 * * *"]
+
 [vars]
 APP_NAME = "Compliance Radar"
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 APP_DEPLOYED_AT = ""
 MAX_UPLOAD_MB = "10"
 DEFAULT_USE_LLM = "false"

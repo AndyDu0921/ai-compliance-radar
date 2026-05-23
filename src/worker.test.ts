@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import app, { type Bindings } from "./worker";
+import worker, { createApp } from "./worker";
+import type { Bindings } from "./types";
 
 class MockD1Database {
   calls: Array<{ sql: string; binds: unknown[] }> = [];
@@ -47,6 +48,7 @@ function createEnv(overrides: Partial<Bindings> = {}): Bindings {
 
 async function request(url: string, init: RequestInit = {}, envOverrides: Partial<Bindings> = {}) {
   const env = createEnv(envOverrides);
+  const app = createApp();
   const response = await app.fetch(new Request(`https://example.com${url}`, init), env);
   return { response, env };
 }
@@ -76,13 +78,11 @@ describe("worker api", () => {
 
   it("returns 404 for job history when admin api key is not configured", async () => {
     const { response } = await request("/api/v1/jobs");
-
     expect(response.status).toBe(404);
   });
 
   it("returns 401 for job history when admin api key is configured but missing", async () => {
     const { response } = await request("/api/v1/jobs", {}, { ADMIN_API_KEY: "secret-key" });
-
     expect(response.status).toBe(401);
   });
 
@@ -112,15 +112,8 @@ describe("worker api", () => {
 
     const { response } = await request(
       "/api/v1/jobs",
-      {
-        headers: {
-          "X-API-Key": "secret-key"
-        }
-      },
-      {
-        ADMIN_API_KEY: "secret-key",
-        DB: db as unknown as D1Database
-      }
+      { headers: { "X-API-Key": "secret-key" } },
+      { ADMIN_API_KEY: "secret-key", DB: db as unknown as D1Database }
     );
 
     const payload = (await response.json()) as Array<{ result: unknown; error_message: string }>;
@@ -135,18 +128,10 @@ describe("worker api", () => {
       "/api/v1/scan/text",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          mode: "ad_copy",
-          text: "全网第一的独家方案，保证有效。"
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "ad_copy", text: "全网第一的独家方案，保证有效。" })
       },
-      {
-        DB: db as unknown as D1Database,
-        STORE_RAW_INPUT: "false"
-      }
+      { DB: db as unknown as D1Database, STORE_RAW_INPUT: "false" }
     );
 
     expect(response.status).toBe(200);
@@ -160,18 +145,10 @@ describe("worker api", () => {
       "/api/v1/scan/text",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          mode: "ad_copy",
-          text: "保证通过"
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "ad_copy", text: "保证通过" })
       },
-      {
-        TURNSTILE_SITE_KEY: "site-key",
-        TURNSTILE_SECRET_KEY: "secret-key"
-      }
+      { TURNSTILE_SITE_KEY: "site-key", TURNSTILE_SECRET_KEY: "secret-key" }
     );
 
     const payload = (await response.json()) as { detail: string };
@@ -189,5 +166,25 @@ describe("worker api", () => {
     expect(response.status).toBe(200);
     expect(payload.openapi).toBe("3.1.0");
     expect(payload.paths["/api/v1/scan/text"]).toBeTruthy();
+  });
+
+  it("returns 429 when rate limit exceeded", async () => {
+    const env = createEnv();
+    const app = createApp();
+
+    // Fire 31 requests (limit is 30 per minute per IP)
+    let lastResponse: Response | undefined;
+    for (let i = 0; i < 31; i++) {
+      lastResponse = await app.fetch(
+        new Request("https://example.com/api/v1/scan/text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "CF-Connecting-IP": "1.2.3.4" },
+          body: JSON.stringify({ mode: "ad_copy", text: "test" })
+        }),
+        env
+      );
+    }
+
+    expect(lastResponse!.status).toBe(429);
   });
 });
