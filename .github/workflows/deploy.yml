@@ -57,13 +57,20 @@ jobs:
           import urllib.request
 
           base = "https://radar.dssxhydwp.shop"
-          html = urllib.request.urlopen(base, timeout=30).read().decode("utf-8")
+          headers = {"User-Agent": "GitHub-Actions-Smoke-Test/1.0"}
+
+          def fetch(url):
+              req = urllib.request.Request(url, headers=headers)
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  return resp.read().decode("utf-8")
+
+          html = fetch(base)
           assert "/js/main.js" in html, "Expected latest frontend asset path in homepage HTML"
 
-          health = json.load(urllib.request.urlopen(f"{base}/health", timeout=30))
+          health = json.loads(fetch(f"{base}/health"))
           assert health["status"] == "ok", "Health endpoint did not return ok"
           assert health["version"] == "${{ github.sha }}", f"Unexpected deployed version: {health['version']}"
 
-          meta = json.load(urllib.request.urlopen(f"{base}/api/v1/meta", timeout=30))
+          meta = json.loads(fetch(f"{base}/api/v1/meta"))
           assert meta["allowed_uploads"] == [".txt", ".md"], f"Unexpected uploads: {meta['allowed_uploads']}"
           PY
