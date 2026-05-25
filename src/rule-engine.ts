@@ -119,14 +119,14 @@ export function buildRuleBasedReport({
   }
 
   const warnings = [
-    "This tool provides a risk triage report, not a formal legal opinion.",
-    "High-risk or mission-critical documents should still be reviewed by a qualified professional."
+    "本工具提供的是风险初筛报告，不构成正式法律意见。",
+    "高风险或关键业务文档仍需由具备资质的专业人士复核。"
   ];
   if (llmWarning) {
     warnings.push(llmWarning);
   }
   for (const item of humanReview.slice(0, 3)) {
-    warnings.push(`Human review suggested: ${item}`);
+    warnings.push(`建议人工复核：${item}`);
   }
 
   return {
@@ -171,19 +171,25 @@ function mergeFindings(ruleItems: RiskItem[], llmItems: RiskItem[]): RiskItem[] 
 }
 
 function buildSummary({ mode, findings }: { mode: ScanMode; findings: RiskItem[] }): string {
+  const modeLabel = mode === "ad_copy" ? "广告文案" : "合同条款";
   if (!findings.length) {
     return (
-      "No obvious rule-based issues were detected. This usually means the content passed the first-pass screen, " +
-      "not that it is legally risk-free."
+      "未检测到明显的规则违规项。这通常意味着内容通过了第一轮筛查，但并不意味着完全没有法律风险，建议仍需人工复核。"
     );
   }
   const severity = severityBreakdown(findings);
   const categories = topCategories(findings)
     .map(([category]) => category)
-    .join(", ");
-  return `Detected ${findings.length} potential issues for ${mode}. Severity mix: ${JSON.stringify(
-    severity
-  )}. Main risk clusters: ${categories}.`;
+    .join("、");
+  const severityCN = Object.entries(severity)
+    .map(([k, v]) => `${severityLabel(k)}${v}条`)
+    .join("，");
+  return `在${modeLabel}模式下检测到 ${findings.length} 个潜在风险项。严重程度分布：${severityCN}。主要风险类别：${categories}。`;
+}
+
+function severityLabel(s: string): string {
+  const map: Record<string, string> = { critical: "严重", high: "高", medium: "中", low: "低", info: "提示" };
+  return map[s] || s;
 }
 
 function recommendActions({
@@ -198,14 +204,14 @@ function recommendActions({
   const actions =
     mode === "ad_copy"
       ? [
-          "Remove absolute claims, guaranteed outcomes, or authority endorsements that cannot be substantiated.",
-          "Replace risky language with factual, measurable, and reviewable descriptions.",
-          "For medical, financial, education, or live-commerce copy, run a manual compliance review before publishing."
+          "删除无法证实的绝对化承诺、保证性用语或权威背书。",
+          "将风险性措辞替换为可量化、可验证的客观描述。",
+          "涉及医疗、金融、教育、直播带货等内容，发布前需进行人工合规复核。"
         ]
       : [
-          "Review one-sided termination, refund, liability, and jurisdiction clauses with a human reviewer.",
-          "Clarify payment, acceptance, delivery, confidentiality, and IP ownership terms in plain language.",
-          "Add negotiation notes for any clause that gives one side broad unilateral control."
+          "对单方解约、退款、赔偿、管辖权等条款进行人工复核。",
+          "以清晰易懂的语言明确付款、交付、保密及知识产权归属条款。",
+          "对赋予单方宽泛控制权的条款，添加谈判备注或修改建议。"
         ];
 
   for (const item of findings.slice(0, 5)) {

@@ -2,113 +2,113 @@
   "rules": [
     {
       "id": "ctr-final-interpretation",
-      "title": "Final interpretation right",
+      "title": "最终解释权条款",
       "pattern": "(最终解释权归.{0,20}(甲方|本公司|乙方|平台).{0,10}所有)",
       "severity": "high",
-      "category": "one_sided_control",
-      "explanation": "A unilateral final-interpretation clause can create imbalance and should be reviewed carefully.",
-      "suggestion": "Replace with a dispute-resolution or amendment mechanism rather than unilateral interpretation rights.",
-      "references": ["Contract fairness review"]
+      "category": "单方控制",
+      "explanation": "单方最终解释权条款会造成合同权利义务失衡，应进行审慎评估。",
+      "suggestion": "建议将单方解释权替换为双方协商的争议解决或修改机制。",
+      "references": ["合同公平性审查"]
     },
     {
       "id": "ctr-unilateral-change",
-      "title": "Unilateral modification power",
+      "title": "单方修改权",
       "pattern": "(甲方有权单方(修改|变更|调整|决定)|平台有权单方(修改|变更|调整|决定))",
       "severity": "critical",
-      "category": "one_sided_control",
-      "explanation": "Broad unilateral change authority is a common red flag in commercial contracts.",
-      "suggestion": "Add notice period, negotiation rights, and written confirmation requirements before changes take effect.",
-      "references": ["Contract fairness review"]
+      "category": "单方控制",
+      "explanation": "宽泛的单方变更授权是商业合同中的常见红旗条款。",
+      "suggestion": "增加通知期限、协商权利和书面确认要求，限制单方变更的适用范围。",
+      "references": ["合同公平性审查"]
     },
     {
       "id": "ctr-auto-renewal",
-      "title": "Automatic renewal",
+      "title": "自动续约条款",
       "pattern": "(自动续期|自动续约|默认续费|到期后自动延长)",
       "severity": "medium",
-      "category": "renewal_and_term",
-      "explanation": "Auto-renewal clauses should be explicit, understandable, and operationally controllable.",
-      "suggestion": "Add reminder timing, cancellation path, and renewal notice language.",
-      "references": ["Renewal clause review"]
+      "category": "续约与期限",
+      "explanation": "自动续约条款应当明确、易懂且可操作控制。",
+      "suggestion": "添加续约提醒时间、取消路径和续约通知条款。",
+      "references": ["续约条款审查"]
     },
     {
       "id": "ctr-no-refund",
-      "title": "No-refund clause",
+      "title": "不予退款条款",
       "pattern": "(已付款项概不退还|不予退还|一律不退款|已支付费用不退)",
       "severity": "high",
-      "category": "payment_and_refund",
-      "explanation": "Flat no-refund language can be risky when the contract lacks balanced service, breach, or cancellation logic.",
-      "suggestion": "Define refund triggers, service milestones, and mutual breach handling more precisely.",
-      "references": ["Refund and breach review"]
+      "category": "付款与退款",
+      "explanation": "无条件的不可退款条款在缺乏对等服务、违约责任和合同解除逻辑平衡时存在较高风险。",
+      "suggestion": "明确定义退款触发条件、服务里程碑和双方的违约责任处理方式。",
+      "references": ["退款与违约审查"]
     },
     {
       "id": "ctr-unlimited-liability",
-      "title": "Unlimited or total liability shift",
+      "title": "无限责任条款",
       "pattern": "(承担全部损失|无限责任|全部赔偿责任|对一切损失负责)",
       "severity": "critical",
-      "category": "liability",
-      "explanation": "Unlimited or blanket liability is a major negotiation point and often needs specialist review.",
-      "suggestion": "Cap liability and define scope, exclusions, and direct-vs-indirect damages clearly.",
-      "references": ["Liability cap review"]
+      "category": "赔偿责任",
+      "explanation": "无限或兜底赔偿责任是重大谈判要点，通常需要法务专家介入。",
+      "suggestion": "设定赔偿上限，并明确责任范围、除外情形及直接/间接损失的区分。",
+      "references": ["赔偿上限审查"]
     },
     {
       "id": "ctr-broad-exemption",
-      "title": "Broad exemption from responsibility",
+      "title": "宽泛免责条款",
       "pattern": "(甲方不承担任何责任|平台不承担任何责任|概不负责|免责)",
       "severity": "high",
-      "category": "liability",
-      "explanation": "Broad免责 language can be overreaching if it is not narrowed by scenario and legal limits.",
-      "suggestion": "Narrow the exemption to specific events and add each party's baseline obligations.",
-      "references": ["Liability fairness review"]
+      "category": "赔偿责任",
+      "explanation": "宽泛的免责用语若未限定场景和法律底线，可能构成过度免责。",
+      "suggestion": "将免责范围限定于特定事件，并补充各方的基本义务条款。",
+      "references": ["赔偿责任公平性审查"]
     },
     {
       "id": "ctr-unilateral-termination",
-      "title": "Unilateral termination right",
+      "title": "单方解约权",
       "pattern": "(甲方可随时解除|平台可随时终止|乙方不得解除|未经甲方同意不得解除)",
       "severity": "high",
-      "category": "termination",
-      "explanation": "One-sided termination rights can materially change commercial risk allocation.",
-      "suggestion": "Define reciprocal termination triggers, cure periods, and post-termination settlement rules.",
-      "references": ["Termination clause review"]
+      "category": "合同解除",
+      "explanation": "单方解约权会显著改变商业风险分配。",
+      "suggestion": "定义对等的解约触发条件、补救期限及解约后的结算规则。",
+      "references": ["解除条款审查"]
     },
     {
       "id": "ctr-jurisdiction",
-      "title": "Unfavorable jurisdiction clause",
+      "title": "不利管辖权条款",
       "pattern": "(由甲方所在地法院管辖|由平台所在地法院管辖|提交.{0,10}(仲裁委员会|法院)处理)",
       "severity": "medium",
-      "category": "dispute_resolution",
-      "explanation": "Jurisdiction clauses may be valid, but they should be reviewed for cost, convenience, and bargaining balance.",
-      "suggestion": "Review venue, governing law, and evidence rules before signing.",
-      "references": ["Jurisdiction review"]
+      "category": "争议解决",
+      "explanation": "管辖权条款可能合法有效，但应从成本、便利性和谈判平衡等角度进行审查。",
+      "suggestion": "在签署前审查管辖地、适用法律和证据规则。",
+      "references": ["管辖权审查"]
     },
     {
       "id": "ctr-acceptance-control",
-      "title": "Acceptance controlled by one side",
+      "title": "单方验收控制权",
       "pattern": "(以甲方最终验收为准|验收标准以甲方要求为准|是否合格由甲方决定)",
       "severity": "high",
-      "category": "delivery_and_acceptance",
-      "explanation": "If one side fully controls acceptance, payment and delivery disputes become more likely.",
-      "suggestion": "Define objective acceptance criteria, timelines, and deemed-acceptance rules.",
-      "references": ["Acceptance clause review"]
+      "category": "交付与验收",
+      "explanation": "若一方完全控制验收标准，付款和交付争议的风险将显著增加。",
+      "suggestion": "定义客观的验收标准、时间表及视为验收通过规则。",
+      "references": ["验收条款审查"]
     },
     {
       "id": "ctr-ip-transfer",
-      "title": "Broad IP ownership transfer",
+      "title": "知识产权全额转让",
       "pattern": "(所有成果及知识产权归甲方所有|全部知识产权永久归甲方|乙方无权保留任何知识产权)",
       "severity": "medium",
-      "category": "intellectual_property",
-      "explanation": "IP ownership can be commercially acceptable, but broad transfer language should be reviewed against price and scope.",
-      "suggestion": "Separate pre-existing IP, deliverable IP, usage license, and derivative rights.",
-      "references": ["IP ownership review"]
+      "category": "知识产权",
+      "explanation": "知识产权归属在商业上可能合理，但宽泛的转让条款应结合对价和范围进行审查。",
+      "suggestion": "区分离现有知识产权、交付物知识产权、使用许可及衍生权利。",
+      "references": ["知识产权归属审查"]
     },
     {
       "id": "ctr-penalty-asymmetry",
-      "title": "Asymmetric breach penalty",
+      "title": "违约金不对等",
       "pattern": "(乙方应支付违约金|乙方承担违约责任).{0,40}(甲方无需承担|甲方不承担)",
       "severity": "high",
-      "category": "breach_and_damages",
-      "explanation": "Highly asymmetric breach language can indicate an unfair risk split.",
-      "suggestion": "Make breach remedies reciprocal or justify differences with clear business logic.",
-      "references": ["Breach remedy review"]
+      "category": "违约与赔偿",
+      "explanation": "高度不对等的违约金条款可能表明风险分配不公。",
+      "suggestion": "使违约责任对等化，或对差异部分给出清晰的商业逻辑说明。",
+      "references": ["违约金审查"]
     }
   ]
 }
