@@ -9,16 +9,17 @@ export class ApiClient {
   }
 
   static async safeJson(response) {
+    const text = await response.text().catch(() => "");
     try {
-      return await response.json();
+      return JSON.parse(text);
     } catch {
-      return {};
+      return { _raw: text };
     }
   }
 
   static async fetchMeta() {
     const res = await fetch("/api/v1/meta");
-    if (!res.ok) throw new Error("获取系统配置失败");
+    if (!res.ok) throw new Error(`获取系统配置失败 (HTTP ${res.status})`);
     return res.json();
   }
 
@@ -27,7 +28,7 @@ export class ApiClient {
     if (!res.ok) {
       if (res.status === 404) throw new Error("当前部署未开放历史任务访问");
       if (res.status === 401) throw new Error("需输入 API Key 以查看历史记录");
-      throw new Error("历史记录读取失败");
+      throw new Error(`历史记录读取失败 (HTTP ${res.status})`);
     }
     return res.json();
   }
@@ -35,7 +36,7 @@ export class ApiClient {
   static async loadJob(jobId, apiKey = "") {
     const res = await fetch(`/api/v1/jobs/${jobId}`, { headers: this.getHeaders(apiKey) });
     const payload = await this.safeJson(res);
-    if (!res.ok) throw new Error(payload.detail || "报告加载失败");
+    if (!res.ok) throw new Error(payload.detail || `报告加载失败 (HTTP ${res.status})`);
     return payload;
   }
 
@@ -46,7 +47,7 @@ export class ApiClient {
       body: JSON.stringify(payload)
     });
     const data = await this.safeJson(res);
-    if (!res.ok) throw new Error(data.detail || "文本扫描提交失败");
+    if (!res.ok) throw new Error(data.detail || `文本扫描提交失败 (HTTP ${res.status})`);
     return data;
   }
 
@@ -57,7 +58,7 @@ export class ApiClient {
       body: formData
     });
     const data = await this.safeJson(res);
-    if (!res.ok) throw new Error(data.detail || "文件扫描提交失败");
+    if (!res.ok) throw new Error(data.detail || `文件扫描提交失败 (HTTP ${res.status})`);
     return data;
   }
 }
