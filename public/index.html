@@ -37,8 +37,43 @@
       </div>
     </header>
 
-    <main class="app-main" style="padding-top: 24px; max-width: 960px; margin: 0 auto;">
-      <section id="workspace" class="workspace-section" style="padding-top: 0;">
+    <main class="app-main" style="max-width: 960px; margin: 0 auto; padding: 32px 24px 0;">
+      <!-- 标题 + 动画预览 -->
+      <section class="fade-in-up" style="text-align:center; margin-bottom: 36px;">
+        <div class="hero-badge" style="display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:20px; background:rgba(41,151,255,0.08); border:1px solid rgba(41,151,255,0.18); font-size:13px; color:var(--accent-blue); margin-bottom: 16px;">
+          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-blue); box-shadow:0 0 8px var(--accent-blue);"></span>
+          DeepSeek V4 Pro 驱动 · 秒级风险审查
+        </div>
+        <h1 style="font-size: clamp(32px, 5vw, 48px); margin: 0 0 8px; letter-spacing: -0.02em;">广告文案 & 合同条款<br>合规风险预审</h1>
+        <p style="color:var(--muted); font-size:16px; margin: 0 0 28px; line-height:1.6;">告别逐字逐句的人工审核。粘贴内容，即刻获得结构化风险评级与整改建议。</p>
+
+        <!-- 扫描动画预览 -->
+        <div class="scanner-preview" style="max-width: 680px; margin: 0 auto;">
+          <div class="scanner-header">
+            <div class="window-controls">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="scanner-title">Compliance Radar — Live Scan Engine</div>
+          </div>
+          <div class="scanner-body">
+            <div class="scanner-line scanning"></div>
+            <div class="mock-text">
+              <div class="mock-line"></div>
+              <div class="mock-line short"></div>
+              <div class="mock-line highlight"></div>
+              <div class="mock-line"></div>
+              <div class="mock-line" style="width: 40%; margin-top: 20px;"></div>
+            </div>
+            <div class="mock-results">
+              <div class="mock-badge critical">Critical Risk Detected</div>
+              <div class="mock-badge review">Manual Review Suggested</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 扫描表单 -->
+      <section id="workspace">
         <form class="scan-form glass-panel" onsubmit="return false;" style="margin-bottom: 20px;">
           <div class="form-header" style="margin-bottom: 12px;">
             <h3 style="margin:0;">新建扫描任务</h3>
@@ -114,6 +149,7 @@
           </div>
         </form>
 
+        <!-- 报告区 -->
         <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
           <div>
             <h2 class="section-title" style="margin:0; font-size:20px;">分析报告</h2>
