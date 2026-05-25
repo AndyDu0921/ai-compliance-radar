@@ -88,7 +88,7 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 
 ## GitHub Actions 自动部署
 
-仓库包含 [`.github/workflows/deploy.yml`](E:\AI合规扫描仪\compliance-radar\.github\workflows\deploy.yml)：
+仓库包含 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)：
 
 - push 到 `main` 后自动执行
 - `npm ci`
@@ -110,7 +110,7 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 
 ## 规则包
 
-规则 JSON 位于 [`data/rules`](E:\AI合规扫描仪\compliance-radar\data\rules)。
+规则 JSON 位于 [`data/rules`](data/rules)。
 
 格式：
 

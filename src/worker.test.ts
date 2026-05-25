@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import worker, { createApp } from "./worker";
+import { createApp } from "./worker";
 import type { Bindings } from "./types";
 
 class MockD1Database {
