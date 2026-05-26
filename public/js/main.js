@@ -183,7 +183,12 @@ class App {
       );
 
       this.activeJobId = payload.job_id;
-      this.ui.renderResult({ id: payload.job_id, title: title || payload.result?.title, result: payload.result });
+      try {
+        this.ui.renderResult({ id: payload.job_id, title: title || payload.result?.title, result: payload.result });
+      } catch (renderErr) {
+        console.error("renderResult failed:", renderErr);
+        this.ui.showToast("渲染报告时出错: " + renderErr.message, "error");
+      }
       this.ui.setStatus("分析完成", "success");
       this.ui.showToast("报告生成完毕", "success");
       document.querySelector(".results-section").scrollIntoView({ behavior: "smooth" });

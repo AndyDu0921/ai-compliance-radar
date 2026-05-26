@@ -133,7 +133,7 @@ export class UIManager {
 
     this.dom.recentJobs.innerHTML = jobs
       .map((job) => {
-        const title = job.title || job.file_name || `Task ${job.id.slice(0, 8)}`;
+        const title = job.title || job.file_name || `Task ${(job.id || "").slice(0, 8)}`;
         const activeClass = job.id === activeJobId ? " active" : "";
         return `
           <div class="job-item${activeClass}" data-job-id="${job.id}">
