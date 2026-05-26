@@ -212,7 +212,7 @@ export class UIManager {
         </div>
         <div class="metric-card">
           <div class="metric-label">任务引用</div>
-          <div class="metric-value" style="font-size: 16px; padding-top: 10px; font-weight: 500; word-break: break-all;">${escapeHtml(job.id.slice(0, 12))}...</div>
+          <div class="metric-value" style="font-size: 16px; padding-top: 10px; font-weight: 500; word-break: break-all;">${escapeHtml((job.id || "").slice(0, 12)) || "—"}...</div>
           <div class="metric-desc">${escapeHtml(job.title || result.title || "未命名文档")}</div>
         </div>
       </div>

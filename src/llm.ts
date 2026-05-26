@@ -61,8 +61,8 @@ export async function analyzeWithLlm({
       },
       body: JSON.stringify({
         model: env.LLM_MODEL,
-        temperature: 0.1,
-        max_tokens: 4096,
+        temperature: 0,
+        max_tokens: 2048,
         messages: [
           {
             role: "system",
@@ -147,7 +147,7 @@ function buildPrompt({
 ${JSON.stringify(serializedHits)}
 
 待审内容：
-${text.slice(0, 14000)}
+${text.slice(0, 8000)}
 `.trim();
 }
 
