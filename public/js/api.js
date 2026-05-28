@@ -61,4 +61,11 @@ export class ApiClient {
     if (!res.ok) throw new Error(data.detail || `文件扫描提交失败 (HTTP ${res.status})`);
     return data;
   }
+
+  static async pollJob(jobId) {
+    const res = await fetch(`/api/v1/poll/${jobId}`);
+    const data = await this.safeJson(res);
+    if (!res.ok) throw new Error(data.detail || "轮询失败");
+    return data;
+  }
 }

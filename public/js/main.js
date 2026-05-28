@@ -169,30 +169,27 @@ class App {
       return;
     }
 
-    this.ui.setStatus("深度分析中...", "processing");
+    this.ui.setStatus("提交中...", "processing");
     try {
       const payload = await ApiClient.submitText(
-        {
-          mode: this.activeMode,
-          text,
-          title,
-          use_llm: this.ui.dom.useLlmText.checked,
-          turnstile_token: this.turnstile.getToken("text")
-        },
+        { mode: this.activeMode, text, title, use_llm: this.ui.dom.useLlmText.checked, turnstile_token: this.turnstile.getToken("text") },
         this.getAdminApiKey()
       );
 
       this.activeJobId = payload.job_id;
-      try {
-        this.ui.renderResult({ id: payload.job_id, title: title || payload.result?.title, result: payload.result });
-      } catch (renderErr) {
-        console.error("renderResult failed:", renderErr);
-        this.ui.showToast("渲染报告时出错: " + renderErr.message, "error");
-      }
-      this.ui.setStatus("分析完成", "success");
-      this.ui.showToast("报告生成完毕", "success");
-      document.querySelector(".results-section").scrollIntoView({ behavior: "smooth" });
+      const jobRef = { id: payload.job_id, title: title || payload.result?.title, result: payload.result };
+      this.ui.renderResult(jobRef);
       this.turnstile.reset("text");
+
+      if (payload.llm_pending) {
+        this.ui.setStatus("AI 深度分析中...", "processing");
+        this.ui.showToast("规则引擎报告已生成，AI 增强分析进行中...", "info");
+        this.pollForLlm(payload.job_id, jobRef);
+      } else {
+        this.ui.setStatus("分析完成", "success");
+        this.ui.showToast("报告生成完毕", "success");
+      }
+      document.querySelector(".results-section").scrollIntoView({ behavior: "smooth" });
 
       if (this.jobsEnabled && this.getAdminApiKey()) {
         await this.refreshJobs(true);
@@ -224,7 +221,7 @@ class App {
       return;
     }
 
-    this.ui.setStatus("文件上传并解析中...", "processing");
+    this.ui.setStatus("上传中...", "processing");
     const formData = new FormData();
     formData.append("file", file);
     formData.append("mode", this.activeMode);
@@ -237,9 +234,17 @@ class App {
     try {
       const payload = await ApiClient.submitFile(formData, this.getAdminApiKey());
       this.activeJobId = payload.job_id;
-      this.ui.renderResult({ id: payload.job_id, title: title || payload.result?.title, result: payload.result });
-      this.ui.setStatus("分析完成", "success");
-      this.ui.showToast("报告生成完毕", "success");
+      const jobRef = { id: payload.job_id, title: title || payload.result?.title, result: payload.result };
+      this.ui.renderResult(jobRef);
+
+      if (payload.llm_pending) {
+        this.ui.setStatus("AI 深度分析中...", "processing");
+        this.ui.showToast("规则引擎报告已生成，AI 增强分析进行中...", "info");
+        this.pollForLlm(payload.job_id, jobRef);
+      } else {
+        this.ui.setStatus("分析完成", "success");
+        this.ui.showToast("报告生成完毕", "success");
+      }
       document.querySelector(".results-section").scrollIntoView({ behavior: "smooth" });
       this.handleSelectedFile(null);
       this.turnstile.reset("file");
@@ -252,6 +257,27 @@ class App {
       this.ui.showToast(error.message, "error");
       this.turnstile.reset("file");
     }
+  }
+
+  async pollForLlm(jobId, jobRef) {
+    const MAX_POLLS = 25;
+    for (let i = 0; i < MAX_POLLS; i++) {
+      try {
+        const updated = await ApiClient.pollJob(jobId);
+        if (updated.status === "completed" && updated.result) {
+          jobRef.result = updated.result;
+          this.ui.renderResult(jobRef);
+          this.ui.setStatus("分析完成", "success");
+          this.ui.showToast("AI 增强分析已完成", "success");
+          return;
+        }
+      } catch {
+        // silently retry
+      }
+      await new Promise(r => setTimeout(r, 3000));
+    }
+    this.ui.setStatus("分析完成(规则引擎)", "success");
+    this.ui.showToast("AI 增强分析超时，已使用规则引擎报告", "warning");
   }
 
   handleSelectedFile(file) {

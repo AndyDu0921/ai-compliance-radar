@@ -95,101 +95,95 @@ export function createApp() {
 
   app.get("/api/v1/jobs/:job_id", async (c) => {
     const job = await findJob(c.env.DB, c.req.param("job_id"));
-    if (!job) {
-      return c.json({ detail: "Job not found" }, 404);
-    }
+    if (!job) return c.json({ detail: "Job not found" }, 404);
     return c.json(serializeJob(job));
   });
 
-  // Scan endpoints
+  // Public polling endpoint for async LLM enrichment (no API key required)
+  app.get("/api/v1/poll/:job_id", async (c) => {
+    const job = await findJob(c.env.DB, c.req.param("job_id"));
+    if (!job) return c.json({ detail: "Job not found" }, 404);
+    const parsed = parseStoredReport(job.result_json);
+    return c.json({
+      status: job.status,
+      result: parsed.result,
+      error: parsed.errorMessage || job.error_message
+    });
+  });
+
+  // Scan endpoints — async: rule engine returns immediately, LLM runs in background
   app.post("/api/v1/scan/text", async (c) => {
     const payload = await readJsonPayload(c.req.raw);
     const validation = validateTextPayload(payload);
-    if ("error" in validation) {
-      return c.json({ detail: validation.error }, validation.status);
-    }
+    if ("error" in validation) return c.json({ detail: validation.error }, validation.status);
 
     const turnstileResponse = await verifyTurnstileIfEnabled(c, validation.payload.turnstile_token);
     if (turnstileResponse) return turnstileResponse;
 
     const jobId = crypto.randomUUID();
+    const { mode, text: content, title } = validation.payload;
     const useLlm = resolveUseLlm(c.env, validation.payload.use_llm);
-    const report = await generateReport({
-      env: c.env,
-      jobId,
-      mode: validation.payload.mode,
-      text: validation.payload.text,
-      title: validation.payload.title,
-      sourceName: null,
-      useLlm
-    });
-    await insertCompletedJob(c.env, {
-      jobId,
-      mode: validation.payload.mode,
-      inputMethod: "text",
-      inputText: validation.payload.text,
-      title: validation.payload.title,
-      fileName: null,
-      report
+
+    // Step 1: Rule engine report (instant, <100ms)
+    const ruleReport = buildRuleBasedReport({
+      jobId, mode, text: content, deterministicHits: scanRules({ mode, text: content }),
+      title, sourceName: null
     });
 
-    return c.json({ job_id: jobId, status: "completed", result: report });
+    // Step 2: Save rule report to D1
+    await insertJob(c.env, { jobId, mode, inputMethod: "text", inputText: content, title, fileName: null, report: ruleReport, llmPending: useLlm });
+
+    // Step 3: If LLM enabled, run in background via waitUntil
+    if (useLlm && isLlmEnabled(c.env)) {
+      c.executionCtx.waitUntil(
+        enrichWithLlm(c.env, jobId, mode, content, ruleReport).catch(err => {
+          console.error("LLM enrichment failed:", err?.message || err);
+        })
+      );
+    }
+
+    return c.json({ job_id: jobId, status: useLlm ? "processing" : "completed", llm_pending: useLlm, result: ruleReport });
   });
 
   app.post("/api/v1/scan/file", async (c) => {
     const form = await c.req.formData();
     const file = form.get("file");
-    if (!(file instanceof File)) {
-      return c.json({ detail: "file is required" }, 400);
-    }
+    if (!(file instanceof File)) return c.json({ detail: "file is required" }, 400);
 
     const turnstileResponse = await verifyTurnstileIfEnabled(c, form.get("turnstile_token"));
     if (turnstileResponse) return turnstileResponse;
 
     const suffix = fileSuffix(file.name);
-    if (!ALLOWED_UPLOADS.includes(suffix)) {
-      return c.json({ detail: "Cloudflare version currently supports .txt and .md uploads only" }, 400);
-    }
-    if (file.size > maxUploadMb(c.env) * 1024 * 1024) {
-      return c.json({ detail: `File too large. Max size: ${maxUploadMb(c.env)}MB` }, 413);
-    }
+    if (!ALLOWED_UPLOADS.includes(suffix)) return c.json({ detail: "Only .txt and .md uploads supported" }, 400);
+    if (file.size > maxUploadMb(c.env) * 1024 * 1024) return c.json({ detail: `File too large. Max: ${maxUploadMb(c.env)}MB` }, 413);
 
     const modeValue = form.get("mode");
-    if (!isScanMode(modeValue)) {
-      return c.json({ detail: "mode must be ad_copy or contract_review" }, 400);
-    }
+    if (!isScanMode(modeValue)) return c.json({ detail: "mode must be ad_copy or contract_review" }, 400);
 
     const title = normalizeOptionalString(form.get("title"), 255);
     const text = (await file.text()).trim();
-    if (!text) {
-      return c.json({ detail: "file text cannot be blank" }, 400);
-    }
-    if (text.length > 120000) {
-      return c.json({ detail: "file text is too long" }, 413);
-    }
+    if (!text) return c.json({ detail: "file text cannot be blank" }, 400);
+    if (text.length > 120000) return c.json({ detail: "file text is too long" }, 413);
 
     const jobId = crypto.randomUUID();
     const useLlm = resolveUseLlm(c.env, form.get("use_llm"));
-    const report = await generateReport({
-      env: c.env,
-      jobId,
-      mode: modeValue,
-      text,
-      title,
-      sourceName: file.name,
-      useLlm
-    });
-    await insertCompletedJob(c.env, {
-      jobId,
-      mode: modeValue,
-      inputMethod: "file",
-      inputText: text,
-      title,
-      fileName: file.name,
-      report
+
+    const ruleReport = buildRuleBasedReport({
+      jobId, mode: modeValue, text, deterministicHits: scanRules({ mode: modeValue, text }),
+      title, sourceName: file.name
     });
 
-    return c.json({ job_id: jobId, status: "completed", result: report });
+    await insertJob(c.env, { jobId, mode: modeValue, inputMethod: "file", inputText: text, title, fileName: file.name, report: ruleReport, llmPending: useLlm });
+
+    if (useLlm && isLlmEnabled(c.env)) {
+      c.executionCtx.waitUntil(
+        enrichWithLlm(c.env, jobId, modeValue, text, ruleReport).catch(err => {
+          console.error("LLM enrichment failed:", err?.message || err);
+        })
+      );
+    }
+
+    return c.json({ job_id: jobId, status: useLlm ? "processing" : "completed", llm_pending: useLlm, result: ruleReport });
   });
 
   app.onError((error, c) => {
@@ -274,39 +268,59 @@ async function generateReport({
 
 // ── Database helpers ──
 
-async function insertCompletedJob(
+async function insertJob(
   env: Bindings,
   input: {
-    jobId: string;
-    mode: ScanMode;
-    inputMethod: "text" | "file";
-    inputText: string;
-    title: string | null;
-    fileName: string | null;
-    report: ScanReport;
+    jobId: string; mode: ScanMode; inputMethod: "text" | "file";
+    inputText: string; title: string | null; fileName: string | null;
+    report: ScanReport; llmPending: boolean;
   }
 ) {
   const now = new Date().toISOString();
   await env.DB.prepare(
-    `INSERT INTO jobs (
-      id, title, mode, status, input_method, input_text, file_name,
-      created_at, updated_at, error_message, result_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      input.jobId,
-      input.title,
-      input.mode,
-      "completed",
-      input.inputMethod,
-      shouldStoreRaw(env) ? input.inputText : null,
-      input.fileName,
-      now,
-      now,
-      null,
-      JSON.stringify(input.report)
-    )
-    .run();
+    `INSERT INTO jobs (id, title, mode, status, input_method, input_text, file_name, created_at, updated_at, result_json)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    input.jobId, input.title, input.mode,
+    input.llmPending ? "processing" : "completed",
+    input.inputMethod,
+    shouldStoreRaw(env) ? input.inputText : null,
+    input.fileName, now, now,
+    JSON.stringify(input.report)
+  ).run();
+}
+
+async function enrichWithLlm(
+  env: Bindings, jobId: string, mode: ScanMode, text: string, ruleReport: ScanReport
+) {
+  try {
+    const deterministicHits = ruleReport.risk_items.filter(r => r.source === "rule");
+    const llm = await analyzeWithLlm({ env, mode, text, deterministicHits });
+
+    const enriched = buildRuleBasedReport({
+      jobId, mode, text, deterministicHits,
+      title: ruleReport.title, sourceName: ruleReport.metadata.source_name as string | null,
+      llmItems: llm.llmItems, llmUsed: true,
+      riskScoreAdjustment: llm.riskScoreAdjustment,
+      llmSummary: llm.llmSummary,
+      rewriteSuggestions: llm.rewriteSuggestions,
+      humanReview: llm.humanReview,
+      missingProtections: llm.missingProtections,
+      completenessScores: llm.completenessScores,
+      poisonPills: llm.poisonPills,
+      signingRecommendation: llm.signingRecommendation
+    });
+
+    const now = new Date().toISOString();
+    await env.DB.prepare(
+      "UPDATE jobs SET status='completed', result_json=?, updated_at=?, llm_completed_at=? WHERE id=?"
+    ).bind(JSON.stringify(enriched), now, now, jobId).run();
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : "unknown";
+    await env.DB.prepare(
+      "UPDATE jobs SET status='completed', llm_error=?, updated_at=? WHERE id=?"
+    ).bind(errMsg, new Date().toISOString(), jobId).run();
+  }
 }
 
 async function findJob(db: D1Database, jobId: string): Promise<JobRow | null> {
