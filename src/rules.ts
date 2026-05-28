@@ -12,6 +12,7 @@ export interface Rule {
   category: string;
   explanation: string;
   suggestion: string;
+  threshold?: string;
   references: string[];
 }
 

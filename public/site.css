@@ -245,8 +245,7 @@ input, textarea {
 
 .button-primary:hover {
   background: var(--accent-primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
 }
 
 .button-secondary {
@@ -299,7 +298,7 @@ input, textarea {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  transition: var(--transition-spring);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .glass-panel:hover {

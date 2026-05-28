@@ -77,8 +77,30 @@ export function scanRules({ mode, text }: { mode: ScanMode; text: string }): Ris
 }
 
 export function scoreFindings(findings: RiskItem[]): number {
-  const total = findings.reduce((sum, item) => sum + SEVERITY_WEIGHTS[item.severity], 0);
-  return Math.min(100, total);
+  const baseScore = findings.reduce((sum, item) => sum + SEVERITY_WEIGHTS[item.severity], 0);
+
+  // Compound risk: multiple critical/high findings in the same category
+  const categoryCounts = new Map<string, number>();
+  for (const item of findings) {
+    if (item.severity === "critical" || item.severity === "high") {
+      categoryCounts.set(item.category, (categoryCounts.get(item.category) || 0) + 1);
+    }
+  }
+  let compoundBonus = 0;
+  for (const [, count] of categoryCounts) {
+    if (count >= 3) compoundBonus += 10; // 3+ findings in same category = systemic risk
+    else if (count >= 2) compoundBonus += 5; // 2 findings = related risk
+  }
+
+  // Composite risk patterns
+  const categories = new Set(findings.map((f) => f.category));
+  if (categories.has("单方控制") && categories.has("赔偿责任")) compoundBonus += 8;
+  if (categories.has("赔偿责任") && categories.has("付款与退款")) compoundBonus += 5;
+  if (categories.has("知识产权") && categories.has("保密与数据")) compoundBonus += 5;
+  if (categories.has("虚假或误导") && categories.has("医疗敏感")) compoundBonus += 10;
+  if (categories.has("虚假或误导") && categories.has("金融敏感")) compoundBonus += 10;
+
+  return Math.min(100, baseScore + compoundBonus);
 }
 
 export function buildRuleBasedReport({
