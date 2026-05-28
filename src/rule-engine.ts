@@ -152,8 +152,14 @@ export function buildRuleBasedReport({
     riskScore = Math.min(100, Math.max(riskScore, scoreFindings(combined)));
   }
 
+  // If LLM didn't contribute missing_protections, infer from rule engine
+  let effectiveMissing = missingProtections;
+  if (!effectiveMissing.length) {
+    effectiveMissing = inferMissingProtections(ruleHits, mode);
+  }
+
   const riskGrade = computeRiskGrade(riskScore);
-  const recommendation = signingRecommendation || computeSigningRecommendation(riskScore, missingProtections, poisonPills);
+  const recommendation = signingRecommendation || computeSigningRecommendation(riskScore, effectiveMissing, poisonPills);
 
   const warnings = [
     "本工具提供的是风险初筛报告，不构成正式法律意见。",
@@ -168,10 +174,10 @@ export function buildRuleBasedReport({
     risk_grade: riskGrade,
     summary: llmSummary || buildSummary({ mode, findings: combined }),
     signing_recommendation: recommendation,
-    recommended_actions: recommendActions({ mode, findings: combined, rewriteSuggestions, missingProtections }),
+    recommended_actions: recommendActions({ mode, findings: combined, rewriteSuggestions, missingProtections: effectiveMissing }),
     risk_items: combined, warnings, llm_used: llmUsed,
     deterministic_hit_count: ruleHits.length,
-    missing_protections: missingProtections,
+    missing_protections: effectiveMissing,
     completeness_scores: completenessScores,
     poison_pills: poisonPills,
     metadata: {
@@ -180,6 +186,34 @@ export function buildRuleBasedReport({
       severity_breakdown: severityBreakdown(combined)
     }
   };
+}
+
+function inferMissingProtections(ruleHits: RiskItem[], mode: ScanMode): MissingProtection[] {
+  if (mode !== "contract_review") return [];
+
+  const hitCategories = new Set(ruleHits.map(r => r.category));
+
+  const contractCategories: Array<{ category: string; title: string; clause: string; urgency: MissingProtection["urgency"] }> = [
+    { category: "单方控制", title: "单方控制条款未检测到", clause: "建议检查合同是否包含单方控制相关条款（修改权、解约权、验收标准等），确保双方权利义务对等。", urgency: "important" },
+    { category: "赔偿责任", title: "赔偿责任条款未检测到", clause: "建议补充赔偿上限、间接损失排除、违约金上限等条款，明确各方责任边界。", urgency: "critical" },
+    { category: "合同解除", title: "合同解除条款未检测到", clause: "建议补充解约条件、通知期限、解约后结算方式等条款。", urgency: "important" },
+    { category: "争议解决", title: "争议解决条款未检测到", clause: "建议明确争议解决方式（协商/仲裁/诉讼）和管辖地，优先考虑仲裁。", urgency: "important" },
+    { category: "知识产权", title: "知识产权条款未检测到", clause: "建议补充知识产权归属、背景技术保留、开源组件使用等条款。", urgency: "important" },
+    { category: "付款与退款", title: "付款与退款条款未检测到", clause: "建议明确付款条件、周期、退款触发条件及比例。", urgency: "critical" },
+    { category: "保密与数据", title: "保密与数据保护条款未检测到", clause: "建议补充保密范围、期限、数据保护义务、安全标准等条款。", urgency: "critical" },
+    { category: "交付与验收", title: "交付与验收条款未检测到", clause: "建议明确交付物清单、验收标准、验收流程及时间表。", urgency: "important" },
+    { category: "续约与期限", title: "续约与期限条款未检测到", clause: "建议明确合同有效期、续约条件、提前通知期限等。", urgency: "recommended" },
+    { category: "不可抗力", title: "不可抗力条款未检测到", clause: "建议补充不可抗力的定义、通知义务及合同处理方式。", urgency: "recommended" },
+  ];
+
+  return contractCategories
+    .filter(c => !hitCategories.has(c.category))
+    .map(c => ({
+      title: c.title,
+      urgency: c.urgency,
+      explanation: `规则引擎未命中"${c.category}"类别中的任何风险项。这表示该条款可能缺失、写法过于偏袒一方或使用了规则无法匹配的措辞。${c.clause}`,
+      suggested_clause: c.clause
+    }));
 }
 
 function computeRiskGrade(score: number): string {
