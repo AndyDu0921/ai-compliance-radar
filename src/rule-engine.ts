@@ -13,17 +13,41 @@ export interface RiskItem {
   references: string[];
 }
 
+export interface MissingProtection {
+  title: string;
+  urgency: "critical" | "important" | "recommended";
+  explanation: string;
+  suggested_clause: string;
+}
+
+export interface CompletenessScore {
+  category: string;
+  score: number;
+  note: string;
+}
+
+export interface PoisonPill {
+  location: string;
+  technique: string;
+  description: string;
+}
+
 export interface ScanReport {
   job_id: string;
   title: string | null;
   mode: ScanMode;
   risk_score: number;
+  risk_grade: string;
   summary: string;
+  signing_recommendation: string;
   recommended_actions: string[];
   risk_items: RiskItem[];
   warnings: string[];
   llm_used: boolean;
   deterministic_hit_count: number;
+  missing_protections: MissingProtection[];
+  completeness_scores: CompletenessScore[];
+  poison_pills: PoisonPill[];
   metadata: Record<string, unknown>;
 }
 
@@ -104,33 +128,21 @@ export function scoreFindings(findings: RiskItem[]): number {
 }
 
 export function buildRuleBasedReport({
-  jobId,
-  mode,
-  text,
-  deterministicHits,
-  title,
-  sourceName,
-  llmItems = [],
-  llmUsed = false,
-  riskScoreAdjustment = 0,
-  llmSummary,
-  rewriteSuggestions = [],
-  humanReview = [],
-  llmWarning
+  jobId, mode, text, deterministicHits, title, sourceName,
+  llmItems = [], llmUsed = false, riskScoreAdjustment = 0,
+  llmSummary, rewriteSuggestions = [], humanReview = [], llmWarning,
+  missingProtections = [], completenessScores = [], poisonPills = [],
+  signingRecommendation
 }: {
-  jobId: string;
-  mode: ScanMode;
-  text: string;
-  deterministicHits?: RiskItem[];
-  title: string | null;
-  sourceName?: string | null;
-  llmItems?: RiskItem[];
-  llmUsed?: boolean;
-  riskScoreAdjustment?: number;
-  llmSummary?: string;
-  rewriteSuggestions?: string[];
-  humanReview?: string[];
+  jobId: string; mode: ScanMode; text: string;
+  deterministicHits?: RiskItem[]; title: string | null; sourceName?: string | null;
+  llmItems?: RiskItem[]; llmUsed?: boolean; riskScoreAdjustment?: number;
+  llmSummary?: string; rewriteSuggestions?: string[]; humanReview?: string[];
   llmWarning?: string;
+  missingProtections?: MissingProtection[];
+  completenessScores?: CompletenessScore[];
+  poisonPills?: PoisonPill[];
+  signingRecommendation?: string;
 }): ScanReport {
   const normalized = text.trim();
   const ruleHits = deterministicHits ?? scanRules({ mode, text: normalized });
@@ -140,34 +152,54 @@ export function buildRuleBasedReport({
     riskScore = Math.min(100, Math.max(riskScore, scoreFindings(combined)));
   }
 
+  const riskGrade = computeRiskGrade(riskScore);
+  const recommendation = signingRecommendation || computeSigningRecommendation(riskScore, missingProtections, poisonPills);
+
   const warnings = [
     "本工具提供的是风险初筛报告，不构成正式法律意见。",
     "高风险或关键业务文档仍需由具备资质的专业人士复核。"
   ];
-  if (llmWarning) {
-    warnings.push(llmWarning);
-  }
-  for (const item of humanReview.slice(0, 3)) {
-    warnings.push(`建议人工复核：${item}`);
-  }
+  if (llmWarning) warnings.push(llmWarning);
+  for (const item of humanReview.slice(0, 3)) warnings.push(`建议人工复核：${item}`);
 
   return {
-    job_id: jobId,
-    title: title || sourceName || null,
-    mode,
+    job_id: jobId, title: title || sourceName || null, mode,
     risk_score: riskScore,
+    risk_grade: riskGrade,
     summary: llmSummary || buildSummary({ mode, findings: combined }),
-    recommended_actions: recommendActions({ mode, findings: combined, rewriteSuggestions }),
-    risk_items: combined,
-    warnings,
-    llm_used: llmUsed,
+    signing_recommendation: recommendation,
+    recommended_actions: recommendActions({ mode, findings: combined, rewriteSuggestions, missingProtections }),
+    risk_items: combined, warnings, llm_used: llmUsed,
     deterministic_hit_count: ruleHits.length,
+    missing_protections: missingProtections,
+    completeness_scores: completenessScores,
+    poison_pills: poisonPills,
     metadata: {
       source_name: sourceName ?? null,
       content_length: normalized.length,
       severity_breakdown: severityBreakdown(combined)
     }
   };
+}
+
+function computeRiskGrade(score: number): string {
+  if (score >= 90) return "F — 严重风险";
+  if (score >= 70) return "D — 高风险";
+  if (score >= 50) return "C — 中高风险";
+  if (score >= 30) return "B — 中等风险";
+  return "A — 低风险";
+}
+
+function computeSigningRecommendation(
+  score: number,
+  missing: MissingProtection[],
+  pills: PoisonPill[]
+): string {
+  const criticalMissing = missing.filter(m => m.urgency === "critical").length;
+  if (score >= 90 || pills.length >= 2) return "建议拒绝签署";
+  if (score >= 70 || criticalMissing >= 3) return "升级法务深度审查";
+  if (score >= 40 || criticalMissing >= 1) return "谈判修改后签署";
+  return "风险较低，可签署";
 }
 
 function buildExcerpt(text: string, start: number, end: number, radius = 32): string {
@@ -215,13 +247,10 @@ function severityLabel(s: string): string {
 }
 
 function recommendActions({
-  mode,
-  findings,
-  rewriteSuggestions
+  mode, findings, rewriteSuggestions, missingProtections = []
 }: {
-  mode: ScanMode;
-  findings: RiskItem[];
-  rewriteSuggestions: string[];
+  mode: ScanMode; findings: RiskItem[]; rewriteSuggestions: string[];
+  missingProtections?: MissingProtection[];
 }): string[] {
   const actions =
     mode === "ad_copy"
@@ -242,9 +271,11 @@ function recommendActions({
     }
   }
   for (const suggestion of rewriteSuggestions.slice(0, 3)) {
-    if (suggestion && !actions.includes(suggestion)) {
-      actions.push(suggestion);
-    }
+    if (suggestion && !actions.includes(suggestion)) actions.push(suggestion);
+  }
+  for (const mp of missingProtections.filter(m => m.urgency === "critical").slice(0, 3)) {
+    const action = `缺失条款：${mp.title} — ${mp.explanation}`;
+    if (!actions.includes(action)) actions.push(action);
   }
   return actions.slice(0, 8);
 }

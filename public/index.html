@@ -75,8 +75,13 @@
       <!-- 扫描表单 -->
       <section id="workspace">
         <form class="scan-form glass-panel" onsubmit="return false;" style="margin-bottom: 20px;">
-          <div class="form-header" style="margin-bottom: 12px;">
+          <div class="form-header" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
             <h3 style="margin:0;">新建扫描任务</h3>
+            <select id="riskPreference" style="background:var(--panel);color:var(--text-primary);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;">
+              <option value="standard">标准模式</option>
+              <option value="strict">严格模式</option>
+              <option value="relaxed">宽松模式</option>
+            </select>
           </div>
 
           <div class="segmented-control mode-switch" style="margin-bottom: 16px;">
@@ -150,7 +155,8 @@
         </form>
 
         <!-- 报告区 -->
-        <div class="results-section" style="margin-top: 20px;"> class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+        <div class="results-section" style="margin-top: 20px;">
+          <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
           <div>
             <h2 class="section-title" style="margin:0; font-size:20px;">分析报告</h2>
           </div>
@@ -172,6 +178,7 @@
         </div>
 
         <div id="resultPane" class="report-content hidden"></div>
+        </div>
       </section>
     </main>
 

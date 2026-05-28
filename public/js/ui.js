@@ -189,81 +189,152 @@ export class UIManager {
     const warnings = result.warnings?.length ? result.warnings : ["未发现显著警告项。"];
     const actions = result.recommended_actions?.length ? result.recommended_actions : ["无需特定修正动作。"];
     const findings = result.risk_items?.length ? result.risk_items : [];
+    const missing = result.missing_protections || [];
+    const completeness = result.completeness_scores || [];
+    const pills = result.poison_pills || [];
+    const breakdown = result.metadata?.severity_breakdown || {};
+    const signingRec = result.signing_recommendation || "";
+    const riskGrade = result.risk_grade || "";
+    const maxSeverity = Math.max(breakdown.critical || 0, breakdown.high || 0, breakdown.medium || 0, breakdown.low || 0, breakdown.info || 0, 1);
 
     this.dom.emptyState.classList.add("hidden");
     this.dom.resultPane.classList.remove("hidden");
 
+    const criticalColor = "#ff3b30"; const highColor = "#ff9f0a"; const mediumColor = "#ffd60a";
+    const lowColor = "#30d158"; const infoColor = "#8e8e93";
+    const countCritical = breakdown.critical || 0; const countHigh = breakdown.high || 0;
+    const countMedium = breakdown.medium || 0; const countLow = breakdown.low || 0; const countInfo = breakdown.info || 0;
+
+    const signingStyle = signingRec.includes("拒绝") ? "background:#3d0000;color:#ff6b6b;"
+      : signingRec.includes("升级") ? "background:#3d2000;color:#ffb347;"
+      : signingRec.includes("谈判") ? "background:#3d3500;color:#ffd60a;"
+      : "background:#003d1a;color:#30d158;";
+
     this.dom.resultPane.innerHTML = `
-      <div class="result-overview">
-        <div class="metric-card">
-          <div class="metric-label">风险评级分值</div>
-          <div class="metric-value" style="color: ${result.risk_score >= 80 ? "var(--status-critical)" : result.risk_score >= 50 ? "var(--status-warning)" : "var(--text-primary)"}">${escapeHtml(result.risk_score)}</div>
-          <div class="metric-desc">${escapeHtml(scoreLabel(result.risk_score))}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">明确违规项</div>
-          <div class="metric-value">${escapeHtml(result.deterministic_hit_count)}</div>
-          <div class="metric-desc">规则引擎匹配</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">审查模式</div>
-          <div class="metric-value" style="font-size: 24px; padding-top: 6px;">${escapeHtml(formatMode(result.mode))}</div>
-          <div class="metric-desc">${result.llm_used ? "AI 深度增强已开启" : "基础规则扫描"}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">任务引用</div>
-          <div class="metric-value" style="font-size: 16px; padding-top: 10px; font-weight: 500; word-break: break-all;">${escapeHtml((job.id || "").slice(0, 12)) || "—"}...</div>
-          <div class="metric-desc">${escapeHtml(job.title || result.title || "未命名文档")}</div>
+      <!-- Slack 风格摘要行 -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 20px;background:var(--panel);border-radius:12px;margin-bottom:16px;font-size:14px;border:1px solid var(--line);">
+        <span style="font-weight:700;font-size:18px;">${escapeHtml(result.risk_score)}分</span>
+        <span style="color:var(--muted);">${escapeHtml(riskGrade)}</span>
+        <span style="margin-left:auto;">${countCritical ? `<span style="color:${criticalColor};">${countCritical}严重</span>` : ""} ${countHigh ? `<span style="color:${highColor};">${countHigh}高</span>` : ""} ${countMedium ? `<span style="color:${mediumColor};">${countMedium}中</span>` : ""} ${countLow ? `<span style="color:${lowColor};">${countLow}低</span>` : ""}</span>
+        ${result.llm_used ? '<span style="color:var(--accent-blue);">AI增强</span>' : '<span style="color:var(--muted);">规则引擎</span>'}
+        ${signingRec ? `<span style="padding:4px 12px;border-radius:6px;font-weight:600;font-size:13px;${signingStyle}">${escapeHtml(signingRec)}</span>` : ""}
+      </div>
+
+      <!-- 签署建议卡片 -->
+      ${signingRec ? `
+      <div style="padding:16px 20px;border-radius:12px;margin-bottom:16px;${signingStyle}">
+        <strong>签署建议：${escapeHtml(signingRec)}</strong>
+        <span style="display:block;margin-top:4px;opacity:0.8;font-size:13px;">评级：${escapeHtml(riskGrade)} | 风险项：${findings.length}条 | 缺失保护：${missing.length}项 | 毒丸：${pills.length}个</span>
+      </div>` : ""}
+
+      <!-- 风险仪表盘 -->
+      <div class="report-block">
+        <h3>风险仪表盘</h3>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${countCritical > 0 ? `<div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:13px;color:${criticalColor};font-weight:600;">严重</span><div style="flex:1;background:rgba(255,59,48,0.15);border-radius:4px;height:18px;"><div style="width:${(countCritical/maxSeverity*100)}%;height:100%;background:${criticalColor};border-radius:4px;min-width:8px;"></div></div><span style="width:30px;font-size:13px;color:var(--muted);text-align:right;">${countCritical}</span></div>` : ""}
+          ${countHigh > 0 ? `<div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:13px;color:${highColor};font-weight:600;">高</span><div style="flex:1;background:rgba(255,159,10,0.15);border-radius:4px;height:18px;"><div style="width:${(countHigh/maxSeverity*100)}%;height:100%;background:${highColor};border-radius:4px;min-width:8px;"></div></div><span style="width:30px;font-size:13px;color:var(--muted);text-align:right;">${countHigh}</span></div>` : ""}
+          ${countMedium > 0 ? `<div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:13px;color:${mediumColor};font-weight:600;">中</span><div style="flex:1;background:rgba(255,214,10,0.15);border-radius:4px;height:18px;"><div style="width:${(countMedium/maxSeverity*100)}%;height:100%;background:${mediumColor};border-radius:4px;min-width:8px;"></div></div><span style="width:30px;font-size:13px;color:var(--muted);text-align:right;">${countMedium}</span></div>` : ""}
+          ${countLow > 0 ? `<div style="display:flex;align-items:center;gap:12px;"><span style="width:40px;font-size:13px;color:${lowColor};font-weight:600;">低</span><div style="flex:1;background:rgba(48,209,88,0.15);border-radius:4px;height:18px;"><div style="width:${(countLow/maxSeverity*100)}%;height:100%;background:${lowColor};border-radius:4px;min-width:8px;"></div></div><span style="width:30px;font-size:13px;color:var(--muted);text-align:right;">${countLow}</span></div>` : ""}
+          ${!countCritical && !countHigh && !countMedium && !countLow ? '<span style="font-size:13px;color:var(--muted);">未发现风险项</span>' : ""}
         </div>
       </div>
 
+      <!-- 执行摘要 -->
       <div class="report-block">
         <h3>执行摘要</h3>
         <p>${escapeHtml(result.summary)}</p>
       </div>
 
-      <div class="report-grid">
-        <div class="report-block" style="margin-bottom: 0;">
-          <h3>建议整改方案</h3>
-          <ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      <!-- 缺失保护 -->
+      ${missing.length ? `
+      <div class="report-block">
+        <h3>缺失保护条款 (${missing.length}项)</h3>
+        <div class="risk-items-container">
+          ${missing.map(m => {
+            const urgencyColor = m.urgency === "critical" ? "#ff3b30" : m.urgency === "important" ? "#ff9f0a" : "#30d158";
+            return `
+            <div class="risk-item" style="border-left:3px solid ${urgencyColor};">
+              <div class="risk-header">
+                <div style="font-weight:600;">${escapeHtml(m.title)} <span style="font-size:11px;color:${urgencyColor};margin-left:6px;">${m.urgency === "critical" ? "严重" : m.urgency === "important" ? "重要" : "建议"}</span></div>
+              </div>
+              <div class="risk-explanation">${escapeHtml(m.explanation)}</div>
+              ${m.suggested_clause ? `<div class="risk-suggestion" style="font-style:italic;background:rgba(41,151,255,0.08);padding:10px;border-radius:8px;margin-top:8px;">建议条款：${escapeHtml(m.suggested_clause)}</div>` : ""}
+            </div>`;
+          }).join("")}
         </div>
-        <div class="report-block" style="margin-bottom: 0;">
-          <h3>人工复核提示</h3>
-          <ul>${warnings.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </div>` : ""}
+
+      <!-- 完整度评分 -->
+      ${completeness.length ? `
+      <div class="report-block">
+        <h3>条款完整度评分</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">
+          ${completeness.map(c => {
+            const pct = (c.score / 5 * 100);
+            const barColor = c.score <= 2 ? criticalColor : c.score <= 3 ? highColor : lowColor;
+            return `<div style="padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>${escapeHtml(c.category)}</span><span style="color:${barColor};">${c.score}/5</span></div>
+              <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px;"></div></div>
+              ${c.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">${escapeHtml(c.note)}</div>` : ""}
+            </div>`;
+          }).join("")}
+        </div>
+      </div>` : ""}
+
+      <!-- 风险明细清单 -->
+      <div class="report-block">
+        <h3>风险明细清单 (${findings.length}条)</h3>
+        <div class="risk-items-container">
+          ${findings.length
+            ? findings.map(item => `
+              <div class="risk-item">
+                <div class="risk-header">
+                  <div>
+                    <div class="risk-title">${escapeHtml(item.title)}</div>
+                    <div class="risk-meta-tags">
+                      <span class="meta-tag">${escapeHtml(item.category)}</span>
+                      <span class="meta-tag">${escapeHtml(item.source)}</span>
+                      <span class="meta-tag">置信度 ${Math.round((item.confidence || 0) * 100)}%</span>
+                      ${item.severity_breakdown ? `<span class="meta-tag">S${item.severity_breakdown.severity} L${item.severity_breakdown.likelihood} F${item.severity_breakdown.financial} A${item.severity_breakdown.asymmetry}</span>` : ""}
+                    </div>
+                  </div>
+                  <div class="severity-badge severity-${escapeHtml(item.severity)}">${escapeHtml(formatSeverity(item.severity))}</div>
+                </div>
+                <div class="risk-explanation">${escapeHtml(item.explanation || "未提供详细解释。")}</div>
+                ${item.excerpt ? `<div class="risk-excerpt">📄 ${escapeHtml(item.excerpt)}</div>` : ""}
+                <div class="risk-suggestion">💡 ${escapeHtml(item.suggestion || "暂无具体修改建议。")}</div>
+              </div>
+            `).join("")
+            : '<div class="risk-item"><div class="risk-title">未发现高优风险项</div><div class="risk-explanation">系统未能在此内容中匹配到明确违规点。请注意，机器审核不可替代最终的人工法务终审。</div></div>'}
         </div>
       </div>
 
-      <div class="report-block">
-        <h3>风险明细清单</h3>
-        <div class="risk-items-container">
-          ${
-            findings.length
-              ? findings
-                  .map(
-                    (item) => `
-                  <div class="risk-item">
-                    <div class="risk-header">
-                      <div>
-                        <div class="risk-title">${escapeHtml(item.title)}</div>
-                        <div class="risk-meta-tags">
-                          <span class="meta-tag">${escapeHtml(item.category)}</span>
-                          <span class="meta-tag">${escapeHtml(item.source)}</span>
-                          <span class="meta-tag">置信度 ${Math.round((item.confidence || 0) * 100)}%</span>
-                        </div>
-                      </div>
-                      <div class="severity-badge severity-${escapeHtml(item.severity)}">${escapeHtml(formatSeverity(item.severity))}</div>
-                    </div>
-                    <div class="risk-explanation">${escapeHtml(item.explanation || "未提供详细解释。")}</div>
-                    ${item.excerpt ? `<div class="risk-excerpt">${escapeHtml(item.excerpt)}</div>` : ""}
-                    <div class="risk-suggestion">${escapeHtml(item.suggestion || "暂无具体修改建议。")}</div>
-                  </div>
-                `
-                  )
-                  .join("")
-              : '<div class="risk-item"><div class="risk-title">未发现高优风险项</div><div class="risk-explanation" style="margin-top: 8px;">系统未能在此内容中匹配到明确违规点。请注意，机器审核不可替代最终的人工法务终审。</div></div>'
-          }
+      <!-- 建议整改 + 复核 -->
+      <div class="report-grid">
+        <div class="report-block" style="margin-bottom:0;">
+          <h3>建议整改方案</h3>
+          <ul>${actions.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div class="report-block" style="margin-bottom:0;">
+          <h3>人工复核提示</h3>
+          <ul>${warnings.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
         </div>
       </div>
+
+      <!-- 毒丸条款 -->
+      ${pills.length ? `
+      <div class="report-block" style="margin-top:16px;">
+        <h3>毒丸条款警告 (${pills.length}个)</h3>
+        <div class="risk-items-container">
+          ${pills.map(p => `
+            <div class="risk-item" style="border-left:3px solid ${criticalColor};">
+              <div class="risk-header"><div style="font-weight:600;">📍 ${escapeHtml(p.location)}</div></div>
+              <div class="risk-explanation"><strong>隐藏手法：</strong>${escapeHtml(p.technique)}</div>
+              <div class="risk-suggestion">${escapeHtml(p.description)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>` : ""}
     `;
   }
 }

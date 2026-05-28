@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import packageJson from "../package.json";
 import { analyzeWithLlm, isLlmEnabled } from "./llm";
-import { buildRuleBasedReport, scanRules, type RiskItem, type ScanReport } from "./rule-engine";
+import { buildRuleBasedReport, scanRules, type RiskItem, type ScanReport, type MissingProtection, type CompletenessScore, type PoisonPill } from "./rule-engine";
 import { isScanMode, listRulepacks } from "./rules";
 import type { Bindings, JobRow, ScanMode, TextScanPayload } from "./types";
 import {
@@ -237,6 +237,10 @@ async function generateReport({
   let llmSummary: string | undefined;
   let rewriteSuggestions: string[] = [];
   let humanReview: string[] = [];
+  let missingProtections: MissingProtection[] = [];
+  let completenessScores: CompletenessScore[] = [];
+  let poisonPills: PoisonPill[] = [];
+  let signingRecommendation: string | undefined;
 
   if (useLlm && isLlmEnabled(env)) {
     try {
@@ -247,27 +251,24 @@ async function generateReport({
       llmSummary = llm.llmSummary;
       rewriteSuggestions = llm.rewriteSuggestions;
       humanReview = llm.humanReview;
+      missingProtections = llm.missingProtections;
+      completenessScores = llm.completenessScores;
+      poisonPills = llm.poisonPills;
+      signingRecommendation = llm.signingRecommendation;
     } catch (error) {
-      llmWarning = `LLM analysis failed, rule-based report returned instead: ${
-        error instanceof Error ? error.message : "unknown error"
+      llmWarning = `LLM 分析失败，已回退到规则引擎报告: ${
+        error instanceof Error ? error.message : "未知错误"
       }`;
     }
   }
 
   return buildRuleBasedReport({
     jobId,
-    mode,
-    text,
-    deterministicHits,
-    title,
-    sourceName,
-    llmItems,
-    llmUsed,
-    riskScoreAdjustment,
-    llmSummary,
-    rewriteSuggestions,
-    humanReview,
-    llmWarning
+    mode, text, deterministicHits, title, sourceName,
+    llmItems, llmUsed, riskScoreAdjustment, llmSummary,
+    rewriteSuggestions, humanReview, llmWarning,
+    missingProtections, completenessScores, poisonPills,
+    signingRecommendation
   });
 }
 
