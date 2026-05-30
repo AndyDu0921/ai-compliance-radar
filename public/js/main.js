@@ -17,6 +17,7 @@ class App {
   async init() {
     this.ui.updateMode(this.activeMode);
     this.bindEvents();
+    this.startScannerAnimation();
 
     this.ui.setStatus("系统初始化中...", "processing");
     try {
@@ -283,6 +284,66 @@ class App {
   handleSelectedFile(file) {
     this.selectedFile = file;
     this.ui.renderSelectedFile(file);
+  }
+
+  startScannerAnimation() {
+    const targets = [
+      "合同条款 · 单方控制权检测", "合同条款 · 赔偿责任分析", "合同条款 · 知识产权归属",
+      "合同条款 · 争议解决条款", "合同条款 · 保密与数据保护", "广告文案 · 绝对化用语过滤",
+      "广告文案 · 保证性承诺识别", "广告文案 · 虚假权威背书", "广告文案 · 价格欺诈检测",
+      "合同条款 · 缺失保护扫描", "广告文案 · AI生成内容标识", "合同条款 · 不可抗力条款"
+    ];
+    const categories = ["单方控制", "赔偿责任", "知识产权", "争议解决", "保密与数据", "交付验收", "续约期限", "不可抗力"];
+    const findings = [
+      "⚡ 检出: 最终解释权归甲方所有", "⚡ 检出: 已付款项概不退还", "⚡ 检出: 乙方承担全部损失",
+      "⚡ 检出: 单方随时修改本合同", "⚡ 发现: 缺失赔偿上限条款", "⚡ 发现: 缺失保密条款",
+      "⚡ 检出: 知识产权全额转让", "⚡ 检出: 由甲方所在地法院管辖"
+    ];
+
+    let targetIdx = 0;
+    const progressBar = document.getElementById("scannerProgressBar");
+    const targetEl = document.getElementById("scannerTarget");
+    const percentEl = document.getElementById("scannerPercent");
+    const findingsEl = document.getElementById("scannerFindings");
+    const categoriesEl = document.getElementById("scannerCategories");
+
+    // Init categories
+    if (categoriesEl) {
+      categoriesEl.innerHTML = categories.map(c => `<span class="scanner-cat">${c}</span>`).join("");
+    }
+
+    // Cycle targets and progress
+    setInterval(() => {
+      if (targetEl) targetEl.textContent = targets[targetIdx % targets.length];
+      targetIdx++;
+    }, 2200);
+
+    // Pulse progress 0→100 cycle
+    let progress = 0;
+    setInterval(() => {
+      progress = (progress + 1) % 100;
+      if (progressBar) progressBar.style.width = progress + "%";
+      if (percentEl) percentEl.textContent = progress + "%";
+    }, 300);
+
+    // Pop random findings every 2.5s
+    setInterval(() => {
+      if (!findingsEl) return;
+      const f = findings[Math.floor(Math.random() * findings.length)];
+      const el = document.createElement("div");
+      el.className = "scanner-finding";
+      el.textContent = f;
+      findingsEl.prepend(el);
+      if (findingsEl.children.length > 4) findingsEl.lastChild.remove();
+      // Animate a random category to "done"
+      if (categoriesEl) {
+        const cats = categoriesEl.querySelectorAll(".scanner-cat:not(.done)");
+        if (cats.length) {
+          const randCat = cats[Math.floor(Math.random() * cats.length)];
+          randCat.classList.add("done");
+        }
+      }
+    }, 2500);
   }
 }
 

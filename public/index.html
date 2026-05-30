@@ -56,18 +56,15 @@
             <div class="scanner-title">Compliance Radar — Live Scan Engine</div>
           </div>
           <div class="scanner-body">
-            <div class="scanner-line scanning"></div>
-            <div class="mock-text">
-              <div class="mock-line"></div>
-              <div class="mock-line short"></div>
-              <div class="mock-line highlight"></div>
-              <div class="mock-line"></div>
-              <div class="mock-line" style="width: 40%; margin-top: 20px;"></div>
+            <div class="scanner-status-bar">
+              <span class="scanner-target" id="scannerTarget">正在初始化扫描引擎...</span>
+              <span id="scannerPercent">0%</span>
             </div>
-            <div class="mock-results">
-              <div class="mock-badge critical">Critical Risk Detected</div>
-              <div class="mock-badge review">Manual Review Suggested</div>
+            <div class="scanner-progress">
+              <div class="scanner-progress-bar" id="scannerProgressBar" style="width:0%"></div>
             </div>
+            <div class="scanner-findings" id="scannerFindings"></div>
+            <div class="scanner-categories" id="scannerCategories"></div>
           </div>
         </div>
       </section>
